@@ -1,0 +1,118 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "5.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.Account": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.Identity": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    },
+    "Volo.Abp.BlobStoring.Database": {
+      "version": "10.6.0",
+      "isInstalled": true,
+      "creationTime": "09/23/2026 14:53:33 +00:00"
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "TestingERP.Application": {
+      "path": "src/TestingERP.Application/TestingERP.Application.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.Application.Tests": {
+      "path": "test/TestingERP.Application.Tests/TestingERP.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "TestingERP.Domain.Shared": {
+      "path": "src/TestingERP.Domain.Shared/TestingERP.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.Application.Contracts": {
+      "path": "src/TestingERP.Application.Contracts/TestingERP.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.HttpApi": {
+      "path": "src/TestingERP.HttpApi/TestingERP.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.HttpApi.Client": {
+      "path": "src/TestingERP.HttpApi.Client/TestingERP.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.Web": {
+      "path": "src/TestingERP.Web/TestingERP.Web.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.Web.Tests": {
+      "path": "test/TestingERP.Web.Tests/TestingERP.Web.Tests.abppkg",
+      "folder": "test"
+    },
+    "TestingERP.EntityFrameworkCore.Tests": {
+      "path": "test/TestingERP.EntityFrameworkCore.Tests/TestingERP.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "TestingERP.EntityFrameworkCore": {
+      "path": "src/TestingERP.EntityFrameworkCore/TestingERP.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.TestBase": {
+      "path": "test/TestingERP.TestBase/TestingERP.TestBase.abppkg",
+      "folder": "test"
+    },
+    "TestingERP.Domain.Tests": {
+      "path": "test/TestingERP.Domain.Tests/TestingERP.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "TestingERP.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/TestingERP.HttpApi.Client.ConsoleTestApp/TestingERP.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "TestingERP.DbMigrator": {
+      "path": "src/TestingERP.DbMigrator/TestingERP.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "TestingERP.Domain": {
+      "path": "src/TestingERP.Domain/TestingERP.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}

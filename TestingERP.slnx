@@ -1,0 +1,24 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/TestingERP.Domain/TestingERP.Domain.csproj" />
+        <Project Path="src/TestingERP.Application/TestingERP.Application.csproj" />
+        <Project Path="src/TestingERP.EntityFrameworkCore/TestingERP.EntityFrameworkCore.csproj" />
+        <Project Path="src/TestingERP.Web/TestingERP.Web.csproj" />
+        <Project Path="src/TestingERP.Domain.Shared/TestingERP.Domain.Shared.csproj" />
+        <Project Path="src/TestingERP.Application.Contracts/TestingERP.Application.Contracts.csproj" />
+        <Project Path="src/TestingERP.HttpApi/TestingERP.HttpApi.csproj" />
+        <Project Path="src/TestingERP.HttpApi.Client/TestingERP.HttpApi.Client.csproj" />
+        <Project Path="src/TestingERP.DbMigrator/TestingERP.DbMigrator.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/TestingERP.Application.Tests/TestingERP.Application.Tests.csproj" />
+        <Project Path="test/TestingERP.Web.Tests/TestingERP.Web.Tests.csproj" />
+        <Project Path="test/TestingERP.EntityFrameworkCore.Tests/TestingERP.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/TestingERP.TestBase/TestingERP.TestBase.csproj" />
+        <Project Path="test/TestingERP.Domain.Tests/TestingERP.Domain.Tests.csproj" />
+        <Project Path="test/TestingERP.HttpApi.Client.ConsoleTestApp/TestingERP.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>
