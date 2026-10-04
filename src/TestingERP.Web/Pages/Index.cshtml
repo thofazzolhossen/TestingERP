@@ -9,7 +9,7 @@
 @inject IHtmlLocalizer<TestingERPResource> L
 @inject ICurrentUser CurrentUser
 @{
-    PageLayout.Content.Title = L["Menu:Home"].Value;    
+    PageLayout.Content.Title = L["Menu:Home"].Value;
     PageLayout.Content.BreadCrumb.ShowCurrent = false;
     PageLayout.Content.ShowToolbar = false;
     PageLayout.Content.MenuItemName = TestingERPMenus.Home;
@@ -17,6 +17,7 @@
 
 @section styles {
     <abp-style src="/Pages/Index.css" />
+    
 }
 
 <div class="getting-started-page">

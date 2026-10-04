@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\modules\CRM\src\CRM.EntityFrameworkCore\CRM.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\TestingERP.Domain\TestingERP.Domain.csproj" />
   </ItemGroup>
 

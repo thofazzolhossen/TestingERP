@@ -6,8 +6,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace TestingERP.EntityFrameworkCore;
 
-/* This class is needed for EF Core console commands
- * (like Add-Migration and Update-Database commands) */
 public class TestingERPDbContextFactory : IDesignTimeDbContextFactory<TestingERPDbContext>
 {
     public TestingERPDbContext CreateDbContext(string[] args)

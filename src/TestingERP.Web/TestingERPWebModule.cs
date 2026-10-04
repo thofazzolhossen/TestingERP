@@ -1,55 +1,58 @@
-﻿using System.IO;
+﻿using CRM.Web;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi;
+using OpenIddict.Server.AspNetCore;
+using OpenIddict.Validation.AspNetCore;
+using System;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using TestingERP.EntityFrameworkCore;
 using TestingERP.Localization;
 using TestingERP.MultiTenancy;
 using TestingERP.Permissions;
-using TestingERP.Web.Menus;
 using TestingERP.Web.HealthChecks;
-using Microsoft.OpenApi;
+using TestingERP.Web.Menus;
 using Volo.Abp;
-using Volo.Abp.Studio;
+using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.Localization;
 using Volo.Abp.AspNetCore.Mvc.UI;
 using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap;
-using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
+using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
-using Volo.Abp.Autofac;
-using Volo.Abp.Mapperly;
-using Volo.Abp.Modularity;
-using Volo.Abp.PermissionManagement;
-using Volo.Abp.PermissionManagement.Web;
-using Volo.Abp.UI.Navigation.Urls;
-using Volo.Abp.UI;
-using Volo.Abp.UI.Navigation;
-using Volo.Abp.VirtualFileSystem;
-using Volo.Abp.Identity.Web;
-using Volo.Abp.FeatureManagement;
-using OpenIddict.Server.AspNetCore;
-using OpenIddict.Validation.AspNetCore;
-using Volo.Abp.TenantManagement.Web;
-using System;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Extensions.DependencyInjection;
-using Volo.Abp.Account.Web;
-using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
+using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
+using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared.Toolbars;
 using Volo.Abp.AspNetCore.Serilog;
+using Volo.Abp.Autofac;
+using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
-using Volo.Abp.Swashbuckle;
+using Volo.Abp.Identity.Web;
+using Volo.Abp.Mapperly;
+using Volo.Abp.Modularity;
 using Volo.Abp.OpenIddict;
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.PermissionManagement.Web;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.SettingManagement.Web;
+using Volo.Abp.Studio;
 using Volo.Abp.Studio.Client.AspNetCore;
+using Volo.Abp.Swashbuckle;
+using Volo.Abp.TenantManagement.Web;
+using Volo.Abp.Ui.LayoutHooks;
+using Volo.Abp.UI;
+using Volo.Abp.UI.Navigation;
+using Volo.Abp.UI.Navigation.Urls;
+using Volo.Abp.VirtualFileSystem;
 
 namespace TestingERP.Web;
 
@@ -65,7 +68,8 @@ namespace TestingERP.Web;
     typeof(AbpTenantManagementWebModule),
     typeof(AbpFeatureManagementWebModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(CRMWebModule)
 )]
 public class TestingERPWebModule : AbpModule
 {
@@ -157,6 +161,20 @@ public class TestingERPWebModule : AbpModule
         {
             options.IsDynamicPermissionStoreEnabled = true;
         });
+
+        Configure<AbpBundlingOptions>(options =>
+        {
+            // 1. Add AG Grid JS Globally
+            options.ScriptBundles
+                .Configure(
+                    StandardBundles.Scripts.Global,
+                    bundle =>
+                    {
+                        bundle.AddFiles("https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js");
+                    }
+                );
+        });
+
     }
 
 

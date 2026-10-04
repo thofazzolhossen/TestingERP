@@ -1,0 +1,67 @@
+﻿@page
+@model CRM.Web.Pages.LeadSources.CreateModalModel
+
+@{
+    Layout = null;
+}
+
+<form method="post" abp-model="LeadSource">
+
+    <div class="modal-header">
+        <h5 class="modal-title">New Lead Source</h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close">
+        </button>
+    </div>
+
+    <div class="modal-body">
+
+        <div class="mb-3">
+            <label asp-for="LeadSource.Name" class="form-label"></label>
+            <input asp-for="LeadSource.Name" class="form-control" />
+            <span asp-validation-for="LeadSource.Name"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="LeadSource.Description"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="LeadSource.Description"
+                      class="form-control"
+                      rows="3">
+            </textarea>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="LeadSource.IsActive"
+                   class="form-check-input" />
+
+            <label asp-for="LeadSource.IsActive"
+                   class="form-check-label">
+            </label>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Save
+        </button>
+
+    </div>
+
+</form>

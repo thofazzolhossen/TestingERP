@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\..\..\common.props" />
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<RootNamespace>CRM</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Volo.Abp.Ddd.Application.Contracts" Version="10.6.0" />
+		<PackageReference Include="Volo.Abp.Authorization" Version="10.6.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\CRM.Domain.Shared\CRM.Domain.Shared.csproj" />
+	</ItemGroup>
+
+</Project>

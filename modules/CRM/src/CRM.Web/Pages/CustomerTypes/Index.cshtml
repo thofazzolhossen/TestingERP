@@ -1,0 +1,62 @@
+﻿@page
+@model CRM.Web.Pages.CustomerTypes.IndexModel
+@{
+    ViewData["Title"] = "Customer Types";
+}
+
+
+<div id="CustomerTypesGrid"></div>
+
+
+<!-- CREATE / EDIT MODAL -->
+<div class="modal fade" id="CustomerTypeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form id="CustomerTypeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="CustomerTypeId" name="Id" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="ModalTitle">New Customer Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="Name" id="TypeName" class="form-control" maxlength="128" required placeholder="e.g. Enterprise, Retail, VIP" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea name="Description" id="TypeDescription" class="form-control" rows="3" maxlength="512" placeholder="Brief description..."></textarea>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="IsActive" id="TypeIsActive" class="form-check-input" value="true" checked />
+                        <label class="form-check-label fw-semibold" for="TypeIsActive">Active</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="SaveButton" class="btn btn-primary rounded-pill px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        window.customerTypeUrls = {
+            list: '@Url.Page("/CustomerTypes/Index", "List")',
+            create: '@Url.Page("/CustomerTypes/Index")?handler=Create',
+            update: '@Url.Page("/CustomerTypes/Index")?handler=Update',
+            delete: '@Url.Page("/CustomerTypes/Index", "Delete")'
+        };
+    </script>
+    <script src="/Pages/CustomerTypes/Index.js"></script>
+}

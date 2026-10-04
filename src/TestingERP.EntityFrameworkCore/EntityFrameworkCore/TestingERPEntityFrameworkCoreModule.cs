@@ -28,7 +28,8 @@ namespace TestingERP.EntityFrameworkCore;
     typeof(AbpIdentityEntityFrameworkCoreModule),
     typeof(AbpOpenIddictEntityFrameworkCoreModule),
     typeof(AbpTenantManagementEntityFrameworkCoreModule),
-    typeof(BlobStoringDatabaseEntityFrameworkCoreModule)
+    typeof(BlobStoringDatabaseEntityFrameworkCoreModule),
+    typeof(CRM.EntityFrameworkCore.CRMEntityFrameworkCoreModule)
     )]
 public class TestingERPEntityFrameworkCoreModule : AbpModule
 {

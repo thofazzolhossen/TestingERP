@@ -1,0 +1,171 @@
+﻿@page
+@model CRM.Web.Pages.Leads.IndexModel
+@{
+    ViewData["Title"] = "Leads Management";
+}
+
+@section styles {
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+}
+
+
+<div id="LeadsGrid"></div>
+
+
+<!-- Lead Form Modal -->
+<div class="modal fade" id="LeadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <form id="LeadForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="LeadId" name="Id" />
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="ModalTitle">New Lead</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <!-- Contact Details -->
+                    <h6 class="text-uppercase text-secondary fw-bold small mb-3">Contact Details</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contact Name <span class="text-danger">*</span></label>
+                            <input type="text" id="LeadName" name="Name" class="form-control" placeholder="John Doe" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Company Name</label>
+                            <input type="text" id="LeadCompanyName" name="CompanyName" class="form-control" placeholder="Acme Corp" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" id="LeadEmail" name="Email" class="form-control" placeholder="john@company.com" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone</label>
+                            <input type="text" id="LeadPhone" name="Phone" class="form-control" placeholder="+123456789" />
+                        </div>
+                    </div>
+
+                    <!-- CRM Lookups & Assignee -->
+                    <h6 class="text-uppercase text-secondary fw-bold small mb-3">CRM Classifications & Assignment</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Assign User</label>
+                            <select id="AssignedUserId" name="AssignedUserId" class="form-select select2-dropdown">
+                                <option value="">-- Unassigned --</option>
+                                @foreach (var item in Model.Users)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Customer Type <span class="text-danger">*</span></label>
+                            <select id="CustomerTypeId" name="CustomerTypeId" class="form-select select2-dropdown" required>
+                                <option value="">-- Select Customer Type --</option>
+                                @foreach (var item in Model.CustomerTypes)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Lead Source <span class="text-danger">*</span></label>
+                            <select id="LeadSourceId" name="LeadSourceId" class="form-select select2-dropdown" required>
+                                <option value="">-- Select Lead Source --</option>
+                                @foreach (var item in Model.LeadSources)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Lead Stage <span class="text-danger">*</span></label>
+                            <select id="LeadStageId" name="LeadStageId" class="form-select select2-dropdown" required>
+                                <option value="">-- Select Lead Stage --</option>
+                                @foreach (var item in Model.LeadStages)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Service Requirement <span class="text-danger">*</span></label>
+                            <select id="ServiceId" name="ServiceId" class="form-select select2-dropdown" required>
+                                <option value="">-- Select Service --</option>
+                                @foreach (var item in Model.Services)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Deal Details -->
+                    <h6 class="text-uppercase text-secondary fw-bold small mb-3">Deal Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Estimated Budget</label>
+                            <input type="number" step="0.01" id="LeadEstimatedBudget" name="EstimatedBudget" class="form-control" value="0.00" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Expected Close</label>
+                            <input type="date" id="LeadExpectedCloseDate" name="ExpectedCloseDate" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Next Follow Up</label>
+                            <input type="date" id="LeadNextFollowUpDate" name="NextFollowUpDate" class="form-control" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Remarks & Notes</label>
+                            <textarea id="LeadRemarks" name="Remarks" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light px-4">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="SaveButton" class="btn btn-primary px-4">Save Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Upload CSV Modal -->
+<div class="modal fade" id="UploadCsvModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="CsvUploadForm" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-file-csv text-success me-2"></i>Upload Leads by CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select CSV File <span class="text-danger">*</span></label>
+                        <input type="file" id="CsvFileInput" name="csvFile" class="form-control" accept=".csv" required />
+                    </div>
+                    <div class="alert alert-info py-2 small mb-0">
+                        <strong>Expected Headers:</strong><br />
+                        <code>Name, CompanyName, Email, Phone, EstimatedBudget, Remarks, CustomerTypeName, LeadSourceName, LeadStageName, ServiceName, AssignedUserName</code>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="SaveCsvButton" class="btn btn-success">Upload & Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <!-- Select2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="/Pages/Leads/Index.js"></script>
+}

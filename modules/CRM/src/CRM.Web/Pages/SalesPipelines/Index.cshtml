@@ -1,0 +1,60 @@
+﻿@page
+@model CRM.Web.Pages.SalesPipelines.IndexModel
+@{
+    ViewData["Title"] = "Sales Pipelines";
+}
+
+
+<div id="SalesPipelinesGrid"></div>
+
+
+<!-- CREATE / EDIT MODAL -->
+<div class="modal fade" id="SalesPipelineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="SalesPipelineForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="PipelineId" name="Id" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalTitle">New Sales Pipeline</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" id="PipelineName" name="Name" class="form-control" maxlength="128" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="PipelineDescription" name="Description" class="form-control" rows="3" maxlength="512"></textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" id="PipelineIsActive" name="IsActive" class="form-check-input" checked />
+                        <label class="form-check-label" for="PipelineIsActive">Is Active</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="SaveButton" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        window.salesPipelineUrls = {
+            list: '@Url.Page("/SalesPipelines/Index", "List")',
+            create: '@Url.Page("/SalesPipelines/Index")?handler=Create',
+            update: '@Url.Page("/SalesPipelines/Index")?handler=Update',
+            delete: '@Url.Page("/SalesPipelines/Index", "Delete")'
+        };
+    </script>
+    <script src="/Pages/SalesPipelines/Index.js"></script>
+}

@@ -1,7 +1,16 @@
 <Solution>
-    <Configurations>
-        <Platform Name="Any CPU" />
-    </Configurations>
+    <Folder Name="/modules/" />
+    <Folder Name="/modules/CRM/" />
+    <Folder Name="/modules/CRM/src/">
+        <Project Path="modules/CRM/src/CRM.Application.Contracts/CRM.Application.Contracts.csproj" />
+        <Project Path="modules/CRM/src/CRM.Application/CRM.Application.csproj" />
+        <Project Path="modules/CRM/src/CRM.Domain.Shared/CRM.Domain.Shared.csproj" />
+        <Project Path="modules/CRM/src/CRM.Domain/CRM.Domain.csproj" />
+        <Project Path="modules/CRM/src/CRM.EntityFrameworkCore/CRM.EntityFrameworkCore.csproj" />
+        <Project Path="modules/CRM/src/CRM.HttpApi.Client/CRM.HttpApi.Client.csproj" />
+        <Project Path="modules/CRM/src/CRM.HttpApi/CRM.HttpApi.csproj" />
+        <Project Path="modules/CRM/src/CRM.Web/CRM.Web.csproj" />
+    </Folder>
     <Folder Name="/src/">
         <Project Path="src/TestingERP.Domain/TestingERP.Domain.csproj" />
         <Project Path="src/TestingERP.Application/TestingERP.Application.csproj" />
