@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.MultiTenancy;
 
 namespace CRM.Messenger;
 
@@ -28,18 +29,22 @@ public class MessengerAppService : ApplicationService, IMessengerAppService
 
     public async Task<List<MessengerConversationDto>> GetConversationsAsync()
     {
-        var q = await _conversations.GetQueryableAsync();
-        var list = await q.OrderByDescending(x => x.LastMessageTime).Take(100).ToListAsync();
-        return list.Select(x => new MessengerConversationDto
+        using (DataFilter.Disable<IMultiTenant>())
         {
-            Id = x.Id,
-            CustomerName = x.CustomerName,
-            ProfilePictureUrl = x.ProfilePictureUrl,
-            LastMessageText = x.LastMessageText,
-            LastMessageTime = x.LastMessageTime,
-            UnreadCount = x.UnreadCount
-        }).ToList();
+            var q = await _conversations.GetQueryableAsync();
+            var list = await q.OrderByDescending(x => x.LastMessageTime).Take(100).ToListAsync();
+            return list.Select(x => new MessengerConversationDto
+            {
+                Id = x.Id,
+                CustomerName = x.CustomerName,
+                ProfilePictureUrl = x.ProfilePictureUrl,
+                LastMessageText = x.LastMessageText,
+                LastMessageTime = x.LastMessageTime,
+                UnreadCount = x.UnreadCount
+            }).ToList();
+        }
     }
+
 
     public async Task<List<MessengerMessageDto>> GetMessagesAsync(Guid conversationId)
     {

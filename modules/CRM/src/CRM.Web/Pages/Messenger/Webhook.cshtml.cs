@@ -32,6 +32,7 @@ public class WebhookModel : AbpPageModel
         [FromQuery(Name = "hub.verify_token")] string? token,
         [FromQuery(Name = "hub.challenge")] string? challenge)
     {
+
         if (mode == "subscribe" && !string.IsNullOrEmpty(token) && token == _config["Messenger:VerifyToken"])
         {
             return Content(challenge ?? "", "text/plain");
