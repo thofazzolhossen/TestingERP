@@ -1,0 +1,248 @@
+﻿#crmMsgFab {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1050;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 26px 0 0 26px;
+    background: #0084ff;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: -2px 2px 12px rgba(0,0,0,.25);
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+    #crmMsgFab:hover {
+        background: #006fd6
+    }
+
+#crmMsgBadge {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #e53935;
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    display: none
+}
+
+#crmMsgPanel {
+    position: fixed;
+    right: 64px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1050;
+    width: 380px;
+    height: 560px;
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.28);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e2e8f0
+}
+
+    #crmMsgPanel.open {
+        display: flex
+    }
+
+.crm-msg-head {
+    background: #0084ff;
+    color: #fff;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600
+}
+
+    .crm-msg-head .title {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .crm-msg-head button {
+        background: transparent;
+        border: 0;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer
+    }
+
+.crm-msg-body {
+    flex: 1;
+    overflow-y: auto;
+    background: #f8fafc
+}
+
+.crm-msg-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #eef2f7;
+    background: #fff
+}
+
+    .crm-msg-item:hover {
+        background: #f1f5f9
+    }
+
+.crm-msg-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    object-fit: cover
+}
+
+.crm-msg-meta {
+    flex: 1;
+    min-width: 0
+}
+
+    .crm-msg-meta .name {
+        font-weight: 600;
+        color: #1e293b;
+        display: flex;
+        justify-content: space-between;
+        gap: 6px
+    }
+
+        .crm-msg-meta .name small {
+            font-weight: 400;
+            color: #94a3b8
+        }
+
+    .crm-msg-meta .last {
+        color: #64748b;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+        .crm-msg-meta .last.unread {
+            color: #0f172a;
+            font-weight: 700
+        }
+
+.crm-msg-unread {
+    background: #e53935;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 11px;
+    padding: 1px 7px;
+    align-self: center
+}
+
+.crm-msg-thread {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+}
+
+.crm-bubble {
+    max-width: 78%;
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    word-wrap: break-word;
+    white-space: pre-wrap
+}
+
+    .crm-bubble.in {
+        background: #e4e6eb;
+        color: #111;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px
+    }
+
+    .crm-bubble.out {
+        background: #0084ff;
+        color: #fff;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px
+    }
+
+    .crm-bubble small {
+        display: block;
+        font-size: 10px;
+        opacity: .7;
+        margin-top: 2px
+    }
+
+.crm-msg-foot {
+    display: none;
+    padding: 10px;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    gap: 8px
+}
+
+    .crm-msg-foot.show {
+        display: flex
+    }
+
+    .crm-msg-foot textarea {
+        flex: 1;
+        resize: none;
+        border: 1px solid #cbd5e1;
+        border-radius: 18px;
+        padding: 8px 14px;
+        font-size: 14px;
+        outline: 0;
+        height: 38px
+    }
+
+    .crm-msg-foot button {
+        border: 0;
+        background: #0084ff;
+        color: #fff;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        cursor: pointer
+    }
+
+.crm-msg-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #94a3b8
+}
+
+@media (max-width:480px) {
+    #crmMsgPanel {
+        right: 0;
+        left: 0;
+        width: auto;
+        top: 0;
+        transform: none;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0
+    }
+}

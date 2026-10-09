@@ -2,6 +2,7 @@
 using CRM.Leads;
 using CRM.LeadSources;
 using CRM.LeadStages;
+using CRM.Messenger;
 using CRM.SalesPipelines;
 using CRM.Services;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,9 @@ public class CRMDbContext : AbpDbContext<CRMDbContext>
     public DbSet<Service> Services { get; set; }
     public DbSet<LeadStage> LeadStages { get; set; }
     public DbSet<Lead> Leads { get; set; }
+
+    public DbSet<MessengerConversation> MessengerConversations { get; set; }
+    public DbSet<MessengerMessage> MessengerMessages { get; set; }
 
     public CRMDbContext(DbContextOptions<CRMDbContext> options)
         : base(options)

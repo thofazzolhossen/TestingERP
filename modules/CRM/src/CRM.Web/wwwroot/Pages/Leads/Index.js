@@ -242,8 +242,11 @@
                     abp.notify.error(response.message || 'CSV Import failed.');
                 }
             },
-            error: function () {
-                abp.notify.error('An error occurred while uploading the CSV file.');
+            error: function (xhr) {
+                console.error('CSV upload failed:', xhr.status, xhr.responseText);
+                const msg = (xhr.responseJSON && xhr.responseJSON.error && xhr.responseJSON.error.message)
+                    || `Upload failed (HTTP ${xhr.status} ${xhr.statusText})`;
+                abp.notify.error(msg);
             },
             complete: function () {
                 $btn.prop('disabled', false);

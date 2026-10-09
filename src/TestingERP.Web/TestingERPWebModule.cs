@@ -203,6 +203,7 @@ public class TestingERPWebModule : AbpModule
                 bundle =>
                 {
                     bundle.AddFiles("/global-styles.css");
+                    bundle.AddFiles("/messenger/messenger-widget.css");
                 }
             );
 
@@ -211,6 +212,7 @@ public class TestingERPWebModule : AbpModule
                 bundle =>
                 {
                     bundle.AddFiles("/global-scripts.js");
+                    bundle.AddFiles("/messenger/messenger-widget.js");
                     if (hostingEnvironment.IsDevelopment())
                     {
                         bundle.AddFiles("/dev-login-helper.js");

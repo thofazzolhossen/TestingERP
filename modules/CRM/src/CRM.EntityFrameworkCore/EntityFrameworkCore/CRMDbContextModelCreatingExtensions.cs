@@ -2,6 +2,7 @@
 using CRM.Leads;
 using CRM.LeadSources;
 using CRM.LeadStages;
+using CRM.Messenger;
 using CRM.SalesPipelines;
 using CRM.Services;
 using Microsoft.EntityFrameworkCore;
@@ -57,5 +58,32 @@ public static class CRMDbContextModelCreatingExtensions
 
         builder.ApplyConfiguration(new SalesPipelineConfiguration());
         builder.ApplyConfiguration(new LeadStageConfiguration());
+
+        // Messenger
+
+        builder.Entity<MessengerConversation>(b =>
+        {
+            b.ToTable("CrmMessengerConversations");
+            b.ConfigureByConvention();
+            b.Property(x => x.PageScopedUserId).IsRequired().HasMaxLength(128);
+            b.Property(x => x.CustomerName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.ProfilePictureUrl).HasMaxLength(1024);
+            b.Property(x => x.LastMessageText).HasMaxLength(1000);
+            b.HasIndex(x => new { x.TenantId, x.PageScopedUserId }).IsUnique();
+        });
+
+        builder.Entity<MessengerMessage>(b =>
+        {
+            b.ToTable("CrmMessengerMessages");
+            b.ConfigureByConvention();
+            b.Property(x => x.FacebookMessageId).HasMaxLength(256);
+            b.Property(x => x.Text).IsRequired().HasMaxLength(2000);
+            b.HasIndex(x => new { x.ConversationId, x.SentTime });
+            b.HasIndex(x => x.FacebookMessageId);
+            b.HasOne<MessengerConversation>().WithMany()
+                .HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+
     }
 }

@@ -107,6 +107,10 @@ public class IndexModel : AbpPageModel
 
     public async Task<IActionResult> OnPostUploadCsvAsync(IFormFile csvFile)
     {
+        if (!Path.GetExtension(csvFile.FileName).Equals(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            return new JsonResult(new { success = false, message = "Only .csv files are allowed." });
+        }
         if (csvFile == null || csvFile.Length == 0)
         {
             return new JsonResult(new { success = false, message = "Please select a valid CSV file." });

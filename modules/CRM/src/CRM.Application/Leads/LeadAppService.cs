@@ -117,7 +117,7 @@ public class LeadAppService : CrudAppService<
 
 
     // Import CSV File
-    public async Task<int> ImportCsvAsync(string csvContent)
+    public virtual async Task<int> ImportCsvAsync(string csvContent)
     {
         if (string.IsNullOrWhiteSpace(csvContent)) return 0;
 
@@ -163,17 +163,39 @@ public class LeadAppService : CrudAppService<
             .GroupBy(x => x.UserName.Trim().ToLower())
             .ToDictionary(g => g.Key, g => g.First().Id);
 
+
+
+
         var leadsToInsert = new List<Lead>();
+        var errors = new List<string>();
+        var rowNumber = 1; // header
 
         foreach (var row in records)
         {
+            rowNumber++;
             if (string.IsNullOrWhiteSpace(row.Name)) continue;
 
-            // Resolve Foreign Key GUIDs (fallback to Guid.Empty or default if lookup not found)
-            customerTypes.TryGetValue(row.CustomerTypeName?.Trim().ToLower() ?? "", out var ctId);
-            leadSources.TryGetValue(row.LeadSourceName?.Trim().ToLower() ?? "", out var lsId);
-            leadStages.TryGetValue(row.LeadStageName?.Trim().ToLower() ?? "", out var stId);
-            services.TryGetValue(row.ServiceName?.Trim().ToLower() ?? "", out var sId);
+            var ctOk = customerTypes.TryGetValue(row.CustomerTypeName?.Trim().ToLower() ?? "", out var ctId);
+            var lsOk = leadSources.TryGetValue(row.LeadSourceName?.Trim().ToLower() ?? "", out var lsId);
+            var stOk = leadStages.TryGetValue(row.LeadStageName?.Trim().ToLower() ?? "", out var stId);
+            var sOk = services.TryGetValue(row.ServiceName?.Trim().ToLower() ?? "", out var sId);
+
+            var rowErrors = new List<string>();
+            if (!ctOk) rowErrors.Add($"CustomerType '{row.CustomerTypeName}' not found");
+            if (!lsOk) rowErrors.Add($"LeadSource '{row.LeadSourceName}' not found");
+            if (!stOk) rowErrors.Add($"LeadStage '{row.LeadStageName}' not found");
+            if (!sOk) rowErrors.Add($"Service '{row.ServiceName}' not found");
+            if (row.Name.Trim().Length > 128) rowErrors.Add("Name > 128 chars");
+            if ((row.CompanyName?.Length ?? 0) > 128) rowErrors.Add("CompanyName > 128 chars");
+            if ((row.Email?.Length ?? 0) > 256) rowErrors.Add("Email > 256 chars");
+            if ((row.Phone?.Length ?? 0) > 32) rowErrors.Add("Phone > 32 chars");
+            if ((row.Remarks?.Length ?? 0) > 1000) rowErrors.Add("Remarks > 1000 chars");
+
+            if (rowErrors.Any())
+            {
+                errors.Add($"Row {rowNumber}: {string.Join("; ", rowErrors)}");
+                continue;
+            }
 
             Guid? assignedUserId = null;
             if (!string.IsNullOrWhiteSpace(row.AssignedUserName) &&
@@ -182,27 +204,24 @@ public class LeadAppService : CrudAppService<
                 assignedUserId = uId;
             }
 
-            var lead = new Lead(
-                GuidGenerator.Create(),
-                row.Name.Trim(),
-                ctId,
-                lsId,
-                stId,
-                sId,
-                row.CompanyName ?? string.Empty,
-                row.Email ?? string.Empty,
-                row.Phone ?? string.Empty,
-                row.EstimatedBudget ?? 0m,
-                row.Remarks,
-                assignedUserId
-            );
+            leadsToInsert.Add(new Lead(
+                GuidGenerator.Create(), row.Name.Trim(), ctId, lsId, stId, sId,
+                row.CompanyName ?? string.Empty, row.Email ?? string.Empty,
+                row.Phone ?? string.Empty, row.EstimatedBudget ?? 0m,
+                row.Remarks, assignedUserId));
+        }
 
-            leadsToInsert.Add(lead);
+        if (errors.Any())
+        {
+            throw new UserFriendlyException(
+                "CSV import failed. " + string.Join(" | ", errors.Take(10)) +
+                (errors.Count > 10 ? $" ... and {errors.Count - 10} more" : ""));
         }
 
         if (leadsToInsert.Any())
         {
-            await Repository.InsertManyAsync(leadsToInsert);
+            // autoSave: true runs SaveChanges now, inside the page's try/catch
+            await Repository.InsertManyAsync(leadsToInsert, autoSave: true);
         }
 
         return leadsToInsert.Count;
