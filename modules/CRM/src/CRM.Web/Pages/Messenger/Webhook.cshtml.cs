@@ -1,14 +1,15 @@
+using CRM.Messenger;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using CRM.Messenger;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Volo.Abp.Auditing;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Auditing;
 
 namespace CRM.Web.Pages.Messenger;
 
@@ -48,15 +49,29 @@ public class WebhookModel : AbpPageModel
         await Request.Body.CopyToAsync(ms);
         var raw = ms.ToArray();
 
+        Logger.LogInformation("Messenger webhook received: {Bytes} bytes", raw.Length);
+
         var secret = _config["Messenger:AppSecret"];
         var header = Request.Headers["X-Hub-Signature-256"].ToString();
 
         if (string.IsNullOrEmpty(secret) || !IsValidSignature(raw, secret, header))
         {
+            Logger.LogWarning("Messenger webhook REJECTED: invalid signature. Check Messenger:AppSecret.");
             return StatusCode(403);
         }
 
-        await _processor.ProcessAsync(Encoding.UTF8.GetString(raw));
+        try
+        {
+            var body = Encoding.UTF8.GetString(raw);
+            Logger.LogInformation("Messenger payload: {Body}", body);
+            await _processor.ProcessAsync(body);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Messenger webhook processing FAILED");
+            throw;
+        }
+
         return new OkResult();
     }
 

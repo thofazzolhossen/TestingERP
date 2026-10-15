@@ -80,6 +80,12 @@ public static class CRMDbContextModelCreatingExtensions
             b.Property(x => x.Text).IsRequired().HasMaxLength(2000);
             b.HasIndex(x => new { x.ConversationId, x.SentTime });
             b.HasIndex(x => x.FacebookMessageId);
+
+            b.Property(x => x.AttachmentType).HasMaxLength(32);
+            b.Property(x => x.AttachmentName).HasMaxLength(256);
+            b.Property(x => x.AttachmentMimeType).HasMaxLength(128);
+            b.Property(x => x.AttachmentStoredName).HasMaxLength(128);
+
             b.HasOne<MessengerConversation>().WithMany()
                 .HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Cascade);
         });

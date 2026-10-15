@@ -791,3 +791,193 @@ img.crm-msg-chat-avatar {
         height: 52px;
     }
 }
+
+
+
+
+
+
+
+/* ================================
+   Attachments, emoji, uploads
+================================ */
+
+#crmMsgPanel,
+#crmMsgInput {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.crm-msg-chat {
+    position: relative;
+}
+
+.crm-msg-tool {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #64748b;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+    .crm-msg-tool:hover {
+        background: #eef2f7;
+        color: #1677f9;
+    }
+
+    .crm-msg-tool:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+    }
+
+#crmMsgEmoji {
+    position: absolute;
+    left: 18px;
+    bottom: 96px;
+    width: 330px;
+    max-width: calc(100% - 36px);
+    height: 230px;
+    overflow-y: auto;
+    display: none;
+    background: #fff;
+    border: 1px solid #e3e9f2;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, .18);
+    padding: 8px;
+    z-index: 5;
+}
+
+    #crmMsgEmoji.open {
+        display: block;
+    }
+
+    #crmMsgEmoji .grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 2px;
+    }
+
+    #crmMsgEmoji button {
+        border: 0;
+        background: transparent;
+        font-size: 22px;
+        line-height: 1;
+        padding: 5px 0;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+        #crmMsgEmoji button:hover {
+            background: #eef4ff;
+        }
+
+.crm-bubble.emoji-only {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    font-size: 38px;
+    line-height: 1.2;
+    padding: 2px 4px;
+    color: inherit;
+}
+
+.crm-bubble.media {
+    padding: 5px 5px 6px;
+}
+
+    .crm-bubble.media .crm-bubble-text {
+        padding: 6px 8px 0;
+    }
+
+    .crm-bubble.media small {
+        padding: 0 8px;
+    }
+
+.crm-att-img {
+    display: block;
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+    cursor: zoom-in;
+    object-fit: cover;
+}
+
+.crm-att-video {
+    display: block;
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+    background: #000;
+}
+
+.crm-att-audio {
+    display: block;
+    width: 240px;
+    max-width: 100%;
+}
+
+.crm-att-file {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    min-width: 190px;
+    background: rgba(0, 0, 0, .06);
+    color: inherit;
+    text-decoration: none;
+}
+
+.crm-bubble.out .crm-att-file {
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+}
+
+.crm-att-file i {
+    font-size: 24px;
+}
+
+.crm-att-file .nm {
+    display: block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.crm-att-file .sz {
+    display: block;
+    font-size: 10px;
+    opacity: .75;
+}
+
+.crm-msg-chat.drag {
+    outline: 2px dashed #1677f9;
+    outline-offset: -6px;
+}
+
+#crmMsgLightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10100;
+    background: rgba(15, 23, 42, .88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+
+    #crmMsgLightbox.open {
+        display: flex;
+    }
+
+    #crmMsgLightbox img {
+        max-width: 92vw;
+        max-height: 92vh;
+        border-radius: 8px;
+    }

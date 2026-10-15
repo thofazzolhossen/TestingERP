@@ -14,6 +14,13 @@ public class MessengerMessage : Entity<Guid>, IMultiTenant
     public DateTime SentTime { get; set; }
     public Guid? SentByUserId { get; set; }
 
+    // Attachment (null when the message is text only)
+    public string? AttachmentType { get; set; }        // image | video | audio | file
+    public string? AttachmentName { get; set; }
+    public string? AttachmentMimeType { get; set; }
+    public string? AttachmentStoredName { get; set; }  // file name on the server disk
+    public long? AttachmentSize { get; set; }
+
     protected MessengerMessage() { }
 
     public MessengerMessage(Guid id, Guid conversationId, string? fbMid, string text,

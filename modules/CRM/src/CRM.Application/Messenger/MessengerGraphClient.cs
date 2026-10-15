@@ -12,6 +12,8 @@ namespace CRM.Messenger;
 
 public class MessengerGraphClient : ITransientDependency
 {
+    public const int MaxFileBytes = 25 * 1024 * 1024; // Facebook limitreceived clearly
+
     private static readonly HttpClient Http = new();
     private readonly IConfiguration _config;
 
@@ -61,6 +63,57 @@ public class MessengerGraphClient : ITransientDependency
         };
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
 
+        return await SendAndReadMessageIdAsync(req);
+    }
+
+    // Uploads a file straight to Facebook (image / video / audio / file).
+    public async Task<string?> SendAttachmentAsync(
+        string psid, string type, string fileName, string contentType, byte[] content)
+    {
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(JsonSerializer.Serialize(new { id = psid })), "recipient");
+        form.Add(new StringContent("RESPONSE"), "messaging_type");
+        form.Add(new StringContent(JsonSerializer.Serialize(new
+        {
+            attachment = new { type, payload = new { is_reusable = true } }
+        })), "message");
+
+        var file = new ByteArrayContent(content);
+        file.Headers.ContentType = MediaTypeHeaderValue.TryParse(contentType, out var ct)
+            ? ct
+            : new MediaTypeHeaderValue("application/octet-stream");
+        form.Add(file, "filedata", fileName);
+
+        var req = new HttpRequestMessage(HttpMethod.Post,
+            $"https://graph.facebook.com/{Version}/me/messages")
+        { Content = form };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+        return await SendAndReadMessageIdAsync(req);
+    }
+
+    // Downloads a customer's attachment (Facebook links expire, so we keep our own copy).
+    public async Task<(byte[] Content, string ContentType)?> DownloadAsync(string url)
+    {
+        try
+        {
+            using var res = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            if (!res.IsSuccessStatusCode) return null;
+            if (res.Content.Headers.ContentLength > MaxFileBytes) return null;
+
+            var bytes = await res.Content.ReadAsByteArrayAsync();
+            if (bytes.Length > MaxFileBytes) return null;
+
+            return (bytes, res.Content.Headers.ContentType?.MediaType ?? "application/octet-stream");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string?> SendAndReadMessageIdAsync(HttpRequestMessage req)
+    {
         var res = await Http.SendAsync(req);
         var json = await res.Content.ReadAsStringAsync();
 

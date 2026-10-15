@@ -9,17 +9,26 @@
             !abp.currentUser.isAuthenticated) return;
 
         var BASE = '/Messenger';
+        var MAX_FILE = 25 * 1024 * 1024;
+        var NOTE_DEFAULT = 'Press Enter to send · Shift + Enter for a new line';
+
+        var EMOJIS = Array.from(
+            '😀😃😄😁😆😅😂🤣🥲😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔🤐😐😑😶😏😒🙄😬😮‍💨😌😔😪😴😷🤒🤕🤢🤮🤧🥵🥶😵🤯🤠🥳😎🤓😕😟🙁☹️😮😯😲😳🥺😦😧😨😰😥😢😭😱😖😣😞😓😩😫🥱😤😡😠🤬😈👿💀💩🤡👻👽🤖' +
+            '👍👎👌✌️🤞🤟🤘🤙👈👉👆👇☝️✋🤚🖐️👋👏🙌👐🤲🤝🙏💪🫶' +
+            '❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💘💝💯💢💥💫💦💨🔥✨⭐🌟🎉🎊🎁🏆✅❌⚠️❓❗📌📞📧💰🛒📦🚚'
+        );
 
         var state = {
             open: false,
             convId: null,
             convName: '',
             lastSig: '',
-            timer: null
+            timer: null,
+            uploading: false
         };
 
         // Remove old UI if script is reinitialized.
-        $('#crmMsgFab, #crmMsgPanel').remove();
+        $('#crmMsgFab, #crmMsgPanel, #crmMsgLightbox').remove();
 
         // Floating Messenger button.
         var $fab = $(
@@ -27,6 +36,10 @@
             '<i class="fa-brands fa-facebook-messenger"></i>' +
             '<span id="crmMsgBadge"></span>' +
             '</button>'
+        );
+
+        var $lightbox = $(
+            '<div id="crmMsgLightbox"><img alt=""></div>'
         );
 
         // Full two-column Messenger window.
@@ -103,7 +116,17 @@
             '<div id="crmMsgBody" class="crm-msg-body">' +
             '</div>' +
 
+            // Emoji picker
+            '<div id="crmMsgEmoji"><div class="grid"></div></div>' +
+
             '<div id="crmMsgFoot" class="crm-msg-foot">' +
+            '<button type="button" id="crmMsgAttach" class="crm-msg-tool" title="Attach files">' +
+            '<i class="fa fa-paperclip"></i>' +
+            '</button>' +
+            '<button type="button" id="crmMsgEmojiBtn" class="crm-msg-tool" title="Emoji">' +
+            '<i class="fa-regular fa-face-smile"></i>' +
+            '</button>' +
+            '<input type="file" id="crmMsgFile" multiple style="display:none">' +
             '<textarea id="crmMsgInput" ' +
             'placeholder="Write a message..." ' +
             'rows="1"></textarea>' +
@@ -112,8 +135,8 @@
             '</button>' +
             '</div>' +
 
-            '<div class="crm-msg-footer-note">' +
-            'Press Enter to send · Shift + Enter for a new line' +
+            '<div class="crm-msg-footer-note" id="crmMsgNote">' +
+            NOTE_DEFAULT +
             '</div>' +
 
             '</div>' +
@@ -123,7 +146,16 @@
             '</section>'
         );
 
-        $('body').append($fab, $panel);
+        $('body').append($fab, $panel, $lightbox);
+
+        // Build emoji grid.
+        (function () {
+            var html = '';
+            EMOJIS.forEach(function (e) {
+                html += '<button type="button" data-e="' + e + '">' + e + '</button>';
+            });
+            $('#crmMsgEmoji .grid').html(html);
+        })();
 
         // Helpers.
         function esc(value) {
@@ -160,6 +192,35 @@
             });
         }
 
+        function fmtSize(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function errMsg(e) {
+            if (!e) return 'Something went wrong.';
+            if (e.error && e.error.message) return e.error.message;
+            if (e.message) return e.message;
+            if (e.responseJSON && e.responseJSON.error && e.responseJSON.error.message) {
+                return e.responseJSON.error.message;
+            }
+            return 'Something went wrong.';
+        }
+
+        // True when the text is only emoji (shown big, like Messenger).
+        function isEmojiOnly(text) {
+            if (!text) return false;
+            var t = text.trim();
+            if (!t || Array.from(t).length > 12) return false;
+            try {
+                return /^(?:\p{Extended_Pictographic}|\u200d|\ufe0f|\s)+$/u.test(t);
+            } catch (e) {
+                return false;
+            }
+        }
+
         function call(type, url, data) {
             return abp.ajax({
                 url: BASE + url,
@@ -167,6 +228,16 @@
                 abpHandleError: false,
                 data: data ? JSON.stringify(data) : undefined
             });
+        }
+
+        function getToken() {
+            try {
+                if (abp.security && abp.security.antiForgery &&
+                    abp.security.antiForgery.getToken) {
+                    return abp.security.antiForgery.getToken();
+                }
+            } catch (e) { }
+            return $('input[name="__RequestVerificationToken"]').first().val() || '';
         }
 
         function setBadge(count) {
@@ -196,6 +267,29 @@
                 '</div>';
         }
 
+        function attachmentHtml(m) {
+            var url = BASE + '?handler=File&id=' + encodeURIComponent(m.id);
+
+            switch (m.attachmentType) {
+                case 'image':
+                    return '<img class="crm-att-img" src="' + url +
+                        '" data-full="' + url + '" alt="' + esc(m.attachmentName) + '">';
+                case 'video':
+                    return '<video class="crm-att-video" src="' + url +
+                        '" controls preload="metadata"></video>';
+                case 'audio':
+                    return '<audio class="crm-att-audio" src="' + url +
+                        '" controls preload="none"></audio>';
+                default:
+                    return '<a class="crm-att-file" href="' + url +
+                        '&download=true" download>' +
+                        '<i class="fa fa-file-lines"></i>' +
+                        '<span><span class="nm">' + esc(m.attachmentName || 'File') + '</span>' +
+                        '<span class="sz">' + esc(fmtSize(m.attachmentSize)) + '</span></span>' +
+                        '</a>';
+            }
+        }
+
         // Unread count.
         function loadUnread() {
             call('GET', '?handler=Unread')
@@ -221,6 +315,7 @@
 
             $panel.removeClass('open');
             $fab.removeClass('active');
+            $('#crmMsgEmoji').removeClass('open');
 
             stopTimer();
             loadUnread();
@@ -315,6 +410,7 @@
             state.lastSig = '';
 
             $('#crmMsgTitle').text(state.convName);
+            $('#crmMsgEmoji').removeClass('open');
 
             var selected = $('#crmMsgList .crm-msg-item').filter(function () {
                 return String($(this).attr('data-id')) === String(id);
@@ -395,16 +491,23 @@
                     var body = document.getElementById('crmMsgBody');
                     var nearBottom =
                         body.scrollHeight - body.scrollTop - body.clientHeight < 100;
+                    var stick = forceScroll || nearBottom;
 
                     var html = '<div class="crm-msg-thread">';
 
                     messages.forEach(function (m) {
+                        var hasAtt = !!m.attachmentType;
+                        var cls = 'crm-bubble ' + (m.isFromCustomer ? 'in' : 'out');
+
+                        if (hasAtt) cls += ' media';
+                        else if (isEmojiOnly(m.text)) cls += ' emoji-only';
+
                         html +=
-                            '<div class="crm-bubble ' +
-                            (m.isFromCustomer ? 'in' : 'out') + '">' +
-                            '<div class="crm-bubble-text">' +
-                            esc(m.text) +
-                            '</div>' +
+                            '<div class="' + cls + '">' +
+                            (hasAtt ? attachmentHtml(m) : '') +
+                            (m.text
+                                ? '<div class="crm-bubble-text">' + esc(m.text) + '</div>'
+                                : '') +
                             '<small>' + esc(fmtTime(m.sentTime)) + '</small>' +
                             '</div>';
                     });
@@ -421,8 +524,13 @@
                             '</div>'
                     );
 
-                    if (forceScroll || nearBottom) {
+                    if (stick) {
                         body.scrollTop = body.scrollHeight;
+
+                        // Images finish loading after render, keep the view at the bottom.
+                        $('#crmMsgBody img.crm-att-img').on('load', function () {
+                            body.scrollTop = body.scrollHeight;
+                        });
                     }
 
                     call('POST', '?handler=Read&id=' + encodeURIComponent(id))
@@ -430,12 +538,12 @@
                 });
         }
 
-        // Send reply.
+        // Send text reply.
         function sendMessage() {
             var $input = $('#crmMsgInput');
             var text = $.trim($input.val());
 
-            if (!text || !state.convId) return;
+            if (!text || !state.convId || state.uploading) return;
 
             var id = state.convId;
             var $button = $('#crmMsgSend');
@@ -449,12 +557,76 @@
                 if (String(state.convId) !== String(id)) return;
 
                 $input.val('');
+                $('#crmMsgEmoji').removeClass('open');
                 refreshChat(true);
                 refreshList();
+            }).fail(function (e) {
+                abp.notify.error(errMsg(e));
             }).always(function () {
                 $button.prop('disabled', false);
                 $input.trigger('focus');
             });
+        }
+
+        // Upload one file.
+        function uploadOne(file) {
+            var fd = new FormData();
+            fd.append('file', file, file.name || 'file');
+
+            var token = getToken();
+            if (token) fd.append('__RequestVerificationToken', token);
+
+            return $.ajax({
+                url: BASE + '?handler=SendFile&id=' + encodeURIComponent(state.convId),
+                type: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                headers: token ? { RequestVerificationToken: token } : {}
+            });
+        }
+
+        // Upload several files, one after another.
+        async function uploadFiles(fileList) {
+            var files = Array.from(fileList || []);
+            if (!files.length || !state.convId || state.uploading) return;
+
+            var id = state.convId;
+            state.uploading = true;
+            $('#crmMsgSend, #crmMsgAttach').prop('disabled', true);
+
+            for (var i = 0; i < files.length; i++) {
+                var f = files[i];
+
+                if (f.size > MAX_FILE) {
+                    abp.notify.error('"' + f.name + '" is larger than 25 MB.');
+                    continue;
+                }
+
+                $('#crmMsgNote').text('Uploading ' + (i + 1) + ' of ' + files.length + ': ' + f.name + ' ...');
+
+                try {
+                    await uploadOne(f);
+                    if (String(state.convId) === String(id)) refreshChat(true);
+                } catch (e) {
+                    abp.notify.error(errMsg(e));
+                }
+            }
+
+            state.uploading = false;
+            $('#crmMsgSend, #crmMsgAttach').prop('disabled', false);
+            $('#crmMsgNote').text(NOTE_DEFAULT);
+            $('#crmMsgFile').val('');
+            refreshList();
+        }
+
+        function insertAtCursor(el, text) {
+            var start = el.selectionStart == null ? el.value.length : el.selectionStart;
+            var end = el.selectionEnd == null ? el.value.length : el.selectionEnd;
+
+            el.value = el.value.slice(0, start) + text + el.value.slice(end);
+            el.selectionStart = el.selectionEnd = start + text.length;
+            el.focus();
         }
 
         // Polling.
@@ -507,6 +679,73 @@
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
+            }
+        });
+
+        // Attach button + file input.
+        $('#crmMsgAttach').on('click', function () {
+            $('#crmMsgFile').trigger('click');
+        });
+
+        $('#crmMsgFile').on('change', function () {
+            uploadFiles(this.files);
+        });
+
+        // Paste a screenshot / copied file with Ctrl+V.
+        $('#crmMsgInput').on('paste', function (e) {
+            var cd = e.originalEvent && e.originalEvent.clipboardData;
+            if (cd && cd.files && cd.files.length) {
+                e.preventDefault();
+                uploadFiles(cd.files);
+            }
+        });
+
+        // Drag and drop files onto the chat.
+        $('#crmMsgChat')
+            .on('dragover', function (e) {
+                e.preventDefault();
+                $(this).addClass('drag');
+            })
+            .on('dragleave drop', function () {
+                $(this).removeClass('drag');
+            })
+            .on('drop', function (e) {
+                e.preventDefault();
+                var dt = e.originalEvent && e.originalEvent.dataTransfer;
+                if (dt && dt.files && dt.files.length) uploadFiles(dt.files);
+            });
+
+        // Emoji picker.
+        $('#crmMsgEmojiBtn').on('click', function (e) {
+            e.stopPropagation();
+            $('#crmMsgEmoji').toggleClass('open');
+        });
+
+        $('#crmMsgEmoji').on('click', 'button', function (e) {
+            e.stopPropagation();
+            insertAtCursor(document.getElementById('crmMsgInput'), $(this).attr('data-e'));
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#crmMsgEmoji, #crmMsgEmojiBtn').length) {
+                $('#crmMsgEmoji').removeClass('open');
+            }
+        });
+
+        // Image viewer (stays inside your software).
+        $('#crmMsgBody').on('click', '.crm-att-img', function () {
+            $lightbox.find('img').attr('src', $(this).attr('data-full'));
+            $lightbox.addClass('open');
+        });
+
+        $lightbox.on('click', function () {
+            $lightbox.removeClass('open').find('img').attr('src', '');
+        });
+
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape') {
+                $lightbox.removeClass('open');
+                $('#crmMsgEmoji').removeClass('open');
             }
         });
 
