@@ -97,6 +97,13 @@ public class TestingERPMenuContributor : IMenuContributor
             icon: "fa fa-user-tie"
         ));
 
+        crmMenu.AddItem(new ApplicationMenuItem(
+            "CRM.Settings",
+            "Settings",
+            url: "/Messenger/Settings",
+            icon: "fa fa-plug"
+        ));
+
 
         context.Menu.AddItem(crmMenu);
 

@@ -70,6 +70,7 @@ public static class CRMDbContextModelCreatingExtensions
             b.Property(x => x.ProfilePictureUrl).HasMaxLength(1024);
             b.Property(x => x.LastMessageText).HasMaxLength(1000);
             b.HasIndex(x => new { x.TenantId, x.PageScopedUserId }).IsUnique();
+            b.Property(x => x.PageId).HasMaxLength(64);
         });
 
         builder.Entity<MessengerMessage>(b =>
@@ -89,7 +90,15 @@ public static class CRMDbContextModelCreatingExtensions
             b.HasOne<MessengerConversation>().WithMany()
                 .HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Cascade);
         });
-
+        builder.Entity<MessengerPageConnection>(b =>
+        {
+            b.ToTable("CrmMessengerPageConnections");
+            b.ConfigureByConvention();
+            b.Property(x => x.PageId).IsRequired().HasMaxLength(64);
+            b.Property(x => x.PageName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.AccessToken).IsRequired().HasMaxLength(1024);
+            b.HasIndex(x => x.PageId).IsUnique();   // one page belongs to exactly one tenant
+        });
 
     }
 }

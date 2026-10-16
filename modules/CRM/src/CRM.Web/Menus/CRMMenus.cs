@@ -10,4 +10,5 @@ public class CRMMenus
     public const string Services = GroupName + ".Services";
     public const string LeadStages = GroupName + ".LeadStages";
     public const string Leads = GroupName + ".Leads";
+    public const string Settings = GroupName + ".Settings";
 }

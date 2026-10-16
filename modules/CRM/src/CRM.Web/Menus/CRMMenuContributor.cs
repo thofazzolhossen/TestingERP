@@ -60,6 +60,13 @@ public class CRMMenuContributor : IMenuContributor
             icon: "fa fa-user-tie"
         ));
 
+        crmMenu.AddItem(new ApplicationMenuItem(
+            CRMMenus.Settings,
+            "Settings",
+            url: "/Messenger/Settings",
+            icon: "fa fa-user-tie"
+        ));
+
         context.Menu.AddItem(crmMenu);
 
         return Task.CompletedTask;

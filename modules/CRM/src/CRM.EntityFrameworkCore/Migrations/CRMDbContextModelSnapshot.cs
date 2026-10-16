@@ -373,6 +373,10 @@ namespace CRM.Migrations
                     b.Property<DateTime>("LastMessageTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("PageId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("PageScopedUserId")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -454,6 +458,50 @@ namespace CRM.Migrations
                     b.HasIndex("ConversationId", "SentTime");
 
                     b.ToTable("CrmMessengerMessages", (string)null);
+                });
+
+            modelBuilder.Entity("CRM.Messenger.MessengerPageConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("PageId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("PageName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId")
+                        .IsUnique();
+
+                    b.ToTable("CrmMessengerPageConnections", (string)null);
                 });
 
             modelBuilder.Entity("CRM.SalesPipelines.SalesPipeline", b =>

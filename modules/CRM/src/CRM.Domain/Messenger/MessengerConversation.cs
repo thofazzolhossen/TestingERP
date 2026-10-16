@@ -11,16 +11,18 @@ public class MessengerConversation : AggregateRoot<Guid>, IMultiTenant
     public string CustomerName { get; set; } = default!;
     public string? ProfilePictureUrl { get; set; }
     public string? LastMessageText { get; set; }
+    public string? PageId { get; set; }
     public DateTime LastMessageTime { get; set; }
     public int UnreadCount { get; set; }
 
     protected MessengerConversation() { }
 
-    public MessengerConversation(Guid id, string psid, string name, string? pic) : base(id)
+    public MessengerConversation(Guid id, string psid, string name, string? pic, string? pageId ) : base(id)
     {
         PageScopedUserId = psid;
         CustomerName = name;
         ProfilePictureUrl = pic;
         LastMessageTime = DateTime.UtcNow;
+        PageId = pageId;
     }
 }

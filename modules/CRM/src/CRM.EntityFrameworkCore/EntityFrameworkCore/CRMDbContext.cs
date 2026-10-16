@@ -23,6 +23,7 @@ public class CRMDbContext : AbpDbContext<CRMDbContext>
 
     public DbSet<MessengerConversation> MessengerConversations { get; set; }
     public DbSet<MessengerMessage> MessengerMessages { get; set; }
+    public DbSet<MessengerPageConnection> MessengerPageConnections { get; set; }
 
     public CRMDbContext(DbContextOptions<CRMDbContext> options)
         : base(options)

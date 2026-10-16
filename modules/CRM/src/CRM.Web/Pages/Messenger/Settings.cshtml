@@ -1,0 +1,35 @@
+﻿@page
+@model CRM.Web.Pages.Messenger.SettingsModel
+@{
+    ViewData["Title"] = "Messenger Settings";
+}
+
+<div class="card shadow-sm" style="max-width:600px">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="fa-brands fa-facebook-messenger text-primary me-2"></i>Messenger Connection</h5>
+
+        @if (!string.IsNullOrEmpty(Model.Error))
+        {
+            <div class="alert alert-danger">@Model.Error</div>
+        }
+
+        @if (Model.PageName != null)
+        {
+            <div class="alert alert-success">Connected page: <strong>@Model.PageName</strong></div>
+
+            <form method="post" action="?handler=Disconnect">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger">Disconnect</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" action="?handler=Connect">
+                @Html.AntiForgeryToken()
+                <label class="form-label fw-semibold">Facebook Page Access Token</label>
+                <textarea name="Token" class="form-control mb-3" rows="3" required></textarea>
+                <button type="submit" class="btn btn-primary">Connect Page</button>
+            </form>
+        }
+    </div>
+</div>

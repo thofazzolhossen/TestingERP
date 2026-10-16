@@ -12,24 +12,72 @@ namespace CRM.Messenger;
 
 public class MessengerGraphClient : ITransientDependency
 {
-    public const int MaxFileBytes = 25 * 1024 * 1024; // Facebook limitreceived clearly
+    public const int MaxFileBytes = 25 * 1024 * 1024;
 
     private static readonly HttpClient Http = new();
     private readonly IConfiguration _config;
 
     public MessengerGraphClient(IConfiguration config) => _config = config;
 
-    private string Token => _config["Messenger:PageAccessToken"]
-        ?? throw new UserFriendlyException("Messenger:PageAccessToken is not configured.");
     private string Version => _config["Messenger:GraphApiVersion"] ?? "v21.0";
 
-    public async Task<(string Name, string? Picture)> GetProfileAsync(string psid)
+    private static HttpRequestMessage NewRequest(HttpMethod method, string url, string token)
+    {
+        var req = new HttpRequestMessage(method, url);
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return req;
+    }
+
+    // Checks the token and returns the page it belongs to
+    
+    public async Task<(string Id, string Name)> GetPageAsync(string token)
+    {
+        var req = NewRequest(HttpMethod.Get, $"https://graph.facebook.com/{Version}/me?fields=id,name", token);
+        var res = await Http.SendAsync(req);
+        var json = await res.Content.ReadAsStringAsync();
+
+        using var doc = JsonDocument.Parse(json);
+
+        if (!res.IsSuccessStatusCode || !doc.RootElement.TryGetProperty("id", out var id))
+        {
+            throw new UserFriendlyException("Facebook says: " + ReadError(doc.RootElement));
+        }
+
+        var name = doc.RootElement.TryGetProperty("name", out var n) ? n.GetString() : null;
+        return (id.GetString()!, string.IsNullOrWhiteSpace(name) ? "Facebook Page" : name!);
+    }
+
+    // Tells Facebook to send this page's messages to our webhook
+    public async Task SubscribeAsync(string pageId, string token)
+    {
+        var req = NewRequest(HttpMethod.Post,
+            $"https://graph.facebook.com/{Version}/{pageId}/subscribed_apps?subscribed_fields=messages,message_echoes",
+            token);
+        var res = await Http.SendAsync(req);
+
+        if (!res.IsSuccessStatusCode)
+        {
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            throw new UserFriendlyException("Facebook says: " + ReadError(doc.RootElement));
+        }
+    }
+
+    private static string ReadError(JsonElement root)
+    {
+        if (root.TryGetProperty("error", out var e) && e.TryGetProperty("message", out var m))
+        {
+            var code = e.TryGetProperty("code", out var c) ? c.ToString() : "";
+            return $"{m.GetString()} (code {code})";
+        }
+        return "Unknown error.";
+    }
+
+    public async Task<(string Name, string? Picture)> GetProfileAsync(string psid, string token)
     {
         try
         {
-            var req = new HttpRequestMessage(HttpMethod.Get,
-                $"https://graph.facebook.com/{Version}/{psid}?fields=first_name,last_name,profile_pic");
-            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+            var req = NewRequest(HttpMethod.Get,
+                $"https://graph.facebook.com/{Version}/{psid}?fields=first_name,last_name,profile_pic", token);
             var res = await Http.SendAsync(req);
             if (!res.IsSuccessStatusCode) return ("Facebook User", null);
 
@@ -47,7 +95,7 @@ public class MessengerGraphClient : ITransientDependency
         }
     }
 
-    public async Task<string?> SendTextAsync(string psid, string text)
+    public async Task<string?> SendTextAsync(string token, string psid, string text)
     {
         var body = JsonSerializer.Serialize(new
         {
@@ -56,19 +104,14 @@ public class MessengerGraphClient : ITransientDependency
             message = new { text }
         });
 
-        var req = new HttpRequestMessage(HttpMethod.Post,
-            $"https://graph.facebook.com/{Version}/me/messages")
-        {
-            Content = new StringContent(body, Encoding.UTF8, "application/json")
-        };
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+        var req = NewRequest(HttpMethod.Post, $"https://graph.facebook.com/{Version}/me/messages", token);
+        req.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
         return await SendAndReadMessageIdAsync(req);
     }
 
-    // Uploads a file straight to Facebook (image / video / audio / file).
     public async Task<string?> SendAttachmentAsync(
-        string psid, string type, string fileName, string contentType, byte[] content)
+        string token, string psid, string type, string fileName, string contentType, byte[] content)
     {
         using var form = new MultipartFormDataContent();
         form.Add(new StringContent(JsonSerializer.Serialize(new { id = psid })), "recipient");
@@ -84,15 +127,12 @@ public class MessengerGraphClient : ITransientDependency
             : new MediaTypeHeaderValue("application/octet-stream");
         form.Add(file, "filedata", fileName);
 
-        var req = new HttpRequestMessage(HttpMethod.Post,
-            $"https://graph.facebook.com/{Version}/me/messages")
-        { Content = form };
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+        var req = NewRequest(HttpMethod.Post, $"https://graph.facebook.com/{Version}/me/messages", token);
+        req.Content = form;
 
         return await SendAndReadMessageIdAsync(req);
     }
 
-    // Downloads a customer's attachment (Facebook links expire, so we keep our own copy).
     public async Task<(byte[] Content, string ContentType)?> DownloadAsync(string url)
     {
         try
