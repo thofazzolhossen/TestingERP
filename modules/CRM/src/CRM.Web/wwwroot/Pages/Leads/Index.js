@@ -18,6 +18,11 @@
         exportFileName: "leads.csv",
         height: "600px",
 
+        // Add gridOptions here for stable row ID patching:
+        gridOptions: {
+            getRowId: p => p.data.id
+        },
+
         buttons: [
             {
                 id: "BtnUploadCsv",
@@ -253,4 +258,19 @@
             }
         });
     });
+
+
+
+    // ===== REAL-TIME (Google Sheet -> grid) =====
+    const hub = new signalR.HubConnectionBuilder()
+        .withUrl('/signalr-hubs/leads').withAutomaticReconnect().build();
+
+    hub.on('LeadsUpserted', rows => {
+        const api = window.leadGrid.gridApi, add = [], update = [];
+        rows.forEach(r => (api.getRowNode(r.id) ? update : add).push(r));
+        api.applyTransaction({ add, update, addIndex: 0 });   // O(changed rows)
+        abp.notify.info(`${rows.length} lead(s) synced from Google Sheet`);
+    });
+    hub.onreconnected(() => window.leadGrid.refresh());       // catch up after a dropped connection
+    hub.start().catch(console.error);
 });

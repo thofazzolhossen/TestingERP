@@ -5,6 +5,7 @@ using CRM.LeadStages;
 using CRM.Messenger;
 using CRM.SalesPipelines;
 using CRM.Services;
+using CRM.Sheets;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp;
 using Volo.Abp.EntityFrameworkCore.Modeling;
@@ -49,11 +50,23 @@ public static class CRMDbContextModelCreatingExtensions
             b.Property(x => x.EstimatedBudget).HasColumnType("decimal(18,2)");
             b.Property(x => x.Remarks).HasMaxLength(1000);
 
+            b.Property(x => x.ExternalId).HasMaxLength(64);
+            b.HasIndex(x => new { x.TenantId, x.ExternalId });
+
             // Foreign Key Relations
             b.HasOne<CustomerType>().WithMany().HasForeignKey(x => x.CustomerTypeId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<LeadSource>().WithMany().HasForeignKey(x => x.LeadSourceId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<LeadStage>().WithMany().HasForeignKey(x => x.LeadStageId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<Service>().WithMany().HasForeignKey(x => x.ServiceId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<SheetConnection>(b =>
+        {
+            b.ToTable("CrmSheetConnections");
+            b.ConfigureByConvention();
+            b.Property(x => x.ConnectionKey).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Secret).IsRequired().HasMaxLength(512);
+            b.HasIndex(x => x.ConnectionKey).IsUnique();
         });
 
         builder.ApplyConfiguration(new SalesPipelineConfiguration());

@@ -11,4 +11,5 @@ public class CRMMenus
     public const string LeadStages = GroupName + ".LeadStages";
     public const string Leads = GroupName + ".Leads";
     public const string Settings = GroupName + ".Settings";
+    public const string SheetSettings = GroupName + ".SheetSettings"; // Unique key for Sheets
 }

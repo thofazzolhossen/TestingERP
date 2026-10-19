@@ -5,6 +5,7 @@ using CRM.LeadStages;
 using CRM.Messenger;
 using CRM.SalesPipelines;
 using CRM.Services;
+using CRM.Sheets;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.EntityFrameworkCore;
@@ -24,6 +25,7 @@ public class CRMDbContext : AbpDbContext<CRMDbContext>
     public DbSet<MessengerConversation> MessengerConversations { get; set; }
     public DbSet<MessengerMessage> MessengerMessages { get; set; }
     public DbSet<MessengerPageConnection> MessengerPageConnections { get; set; }
+    public DbSet<SheetConnection> SheetConnections { get; set; }
 
     public CRMDbContext(DbContextOptions<CRMDbContext> options)
         : base(options)
