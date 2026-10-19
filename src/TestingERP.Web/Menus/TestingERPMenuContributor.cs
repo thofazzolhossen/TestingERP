@@ -103,7 +103,18 @@ public class TestingERPMenuContributor : IMenuContributor
             url: "/Messenger/Settings",
             icon: "fa fa-plug"
         ));
-
+        crmMenu.AddItem(new ApplicationMenuItem(
+            "CRM.Settings",
+            "Settings",
+            url: "/Sheets/Settings",
+            icon: "fa fa-plug"
+        ));
+        crmMenu.AddItem(new ApplicationMenuItem(
+            "CRM.SheetSettings",
+            "Google Sheets",
+            url: "/Sheets/Settings",
+            icon: "fa-brands fa-google-drive"
+        ));
 
         context.Menu.AddItem(crmMenu);
 

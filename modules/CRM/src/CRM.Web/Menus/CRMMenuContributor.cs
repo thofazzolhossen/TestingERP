@@ -66,6 +66,12 @@ public class CRMMenuContributor : IMenuContributor
             url: "/Messenger/Settings",
             icon: "fa fa-user-tie"
         ));
+        crmMenu.AddItem(new ApplicationMenuItem(
+            CRMMenus.SheetSettings,
+            "Google Sheets",
+            url: "/Sheets/Settings",
+            icon: "fa-brands fa-google-drive"
+        ));
 
         context.Menu.AddItem(crmMenu);
 

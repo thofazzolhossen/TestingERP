@@ -28,6 +28,7 @@ public class Lead : FullAuditedAggregateRoot<Guid>, IMultiTenant
 
     // Assigned User (ABP Identity User ID)
     public Guid? AssignedUserId { get; set; }
+    public string? ExternalId { get; set; }   // sheet row key
 
     // Parameterless constructor required by ORM / ABP
     protected Lead()
@@ -49,7 +50,8 @@ public class Lead : FullAuditedAggregateRoot<Guid>, IMultiTenant
         string? remarks = null,
         Guid? assignedUserId = null,
         DateTime? expectedCloseDate = null,
-        DateTime? nextFollowUpDate = null)
+        DateTime? nextFollowUpDate = null,
+        string? externalId = null)
         : base(id)
     {
         Name = name;
@@ -65,5 +67,6 @@ public class Lead : FullAuditedAggregateRoot<Guid>, IMultiTenant
         AssignedUserId = assignedUserId;
         ExpectedCloseDate = expectedCloseDate;
         NextFollowUpDate = nextFollowUpDate;
+        ExternalId = externalId;
     }
 }
