@@ -72,6 +72,12 @@ public class CRMMenuContributor : IMenuContributor
             url: "/Sheets/Settings",
             icon: "fa-brands fa-google-drive"
         ));
+        crmMenu.AddItem(new ApplicationMenuItem(
+           CRMMenus.Dashboard,
+           "Dashboard",
+           url: "/Dashboard",
+           icon: "fa fa-tachometer-alt"
+       ));
 
         context.Menu.AddItem(crmMenu);
 

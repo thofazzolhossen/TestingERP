@@ -1,0 +1,174 @@
+﻿@page
+@model CRM.Web.Pages.Dashboard.IndexModel
+@{
+    ViewData["Title"] = "CRM Dashboard";
+}
+
+@section styles {
+    <style>
+        .dash { --c1:#6366f1; --c2:#06b6d4; --c3:#10b981; --c4:#f59e0b; --c5:#ef4444; }
+        .dash .kpi { border:0; border-radius:16px; color:#fff; position:relative; overflow:hidden;
+                     box-shadow:0 8px 24px -10px rgba(15,23,42,.35); transition:transform .2s; }
+        .dash .kpi:hover { transform:translateY(-3px); }
+        .dash .kpi .card-body { padding:1.1rem 1.25rem; }
+        .dash .kpi .label { font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; opacity:.85; }
+        .dash .kpi .value { font-size:1.9rem; font-weight:800; line-height:1.15; }
+        .dash .kpi .sub { font-size:.78rem; opacity:.9; }
+        .dash .kpi .ico { position:absolute; right:-6px; bottom:-14px; font-size:4.6rem; opacity:.16; }
+        .k1 { background:linear-gradient(135deg,#6366f1,#8b5cf6); }
+        .k2 { background:linear-gradient(135deg,#06b6d4,#3b82f6); }
+        .k3 { background:linear-gradient(135deg,#10b981,#14b8a6); }
+        .k4 { background:linear-gradient(135deg,#f59e0b,#f97316); }
+        .k5 { background:linear-gradient(135deg,#ef4444,#ec4899); }
+        .dash .panel { border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 4px 14px -8px rgba(15,23,42,.18); height:100%; }
+        .dash .panel h6 { font-weight:700; color:#334155; margin:0; }
+        .dash .chart-box { position:relative; height:260px; }
+        .dash .chart-box.sm { height:230px; }
+        .dash .pill { font-size:.72rem; padding:.15rem .5rem; border-radius:999px; font-weight:600; }
+        .dash .up { background:rgba(255,255,255,.22); }
+        .dash .fu { display:flex; align-items:center; gap:.7rem; padding:.55rem 0; border-bottom:1px dashed #e2e8f0; }
+        .dash .fu:last-child { border:0; }
+        .dash .fu .dot { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+                         font-size:.72rem; font-weight:700; flex:0 0 38px; }
+        .dash .fu .late { background:#fee2e2; color:#b91c1c; }
+        .dash .fu .soon { background:#e0e7ff; color:#4338ca; }
+        .dash .fu .today { background:#fef3c7; color:#b45309; }
+        .dash .rank { display:flex; align-items:center; gap:.6rem; margin-bottom:.7rem; }
+        .dash .rank .bar { height:8px; border-radius:6px; background:#e2e8f0; flex:1; overflow:hidden; }
+        .dash .rank .bar i { display:block; height:100%; background:linear-gradient(90deg,#6366f1,#06b6d4); border-radius:6px; }
+        .dash .skel { background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%); background-size:400% 100%;
+                      animation:sk 1.2s infinite; color:transparent !important; border-radius:6px; }
+        @@keyframes sk { 0%{background-position:100% 0} 100%{background-position:0 0} }
+        .dash .empty { color:#94a3b8; text-align:center; padding:2rem 0; font-size:.85rem; }
+    </style>
+}
+
+<div class="dash">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">CRM Dashboard</h4>
+            <small class="text-muted">Live overview &middot; <span id="updated">loading…</span></small>
+        </div>
+        <button id="btnRefresh" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa fa-rotate me-1"></i>Refresh</button>
+    </div>
+
+    <!-- KPI row -->
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-xl">
+            <div class="card kpi k1">
+                <div class="card-body">
+                    <div class="label">Total Leads</div><div class="value skel" id="kTotal">0000</div>
+                    <div class="sub" id="kTotalSub">&nbsp;</div><i class="fa fa-users ico"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl">
+            <div class="card kpi k2">
+                <div class="card-body">
+                    <div class="label">Pipeline Value</div><div class="value skel" id="kValue">0000</div>
+                    <div class="sub" id="kValueSub">&nbsp;</div><i class="fa fa-sack-dollar ico"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl">
+            <div class="card kpi k3">
+                <div class="card-body">
+                    <div class="label">New This Month</div><div class="value skel" id="kNew">0000</div>
+                    <div class="sub" id="kNewSub">&nbsp;</div><i class="fa fa-chart-line ico"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl">
+            <div class="card kpi k4">
+                <div class="card-body">
+                    <div class="label">Due Today</div><div class="value skel" id="kToday">0000</div>
+                    <div class="sub" id="kTodaySub">&nbsp;</div><i class="fa fa-bell ico"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl">
+            <div class="card kpi k5">
+                <div class="card-body">
+                    <div class="label">Overdue Follow-ups</div><div class="value skel" id="kLate">0000</div>
+                    <div class="sub" id="kLateSub">&nbsp;</div><i class="fa fa-triangle-exclamation ico"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: trend + stage -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-8">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="fa fa-chart-area text-primary me-2"></i>Lead Inflow &middot; last 30 days</h6>
+                    <div class="chart-box"><canvas id="chTrend"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="fa fa-layer-group text-primary me-2"></i>Leads by Stage</h6>
+                    <div class="chart-box"><canvas id="chStage"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: source / service / customer type -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-4">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="fa fa-bullseye text-primary me-2"></i>Lead Sources</h6>
+                    <div class="chart-box sm"><canvas id="chSource"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="fa fa-concierge-bell text-primary me-2"></i>Services in Demand</h6>
+                    <div class="chart-box sm"><canvas id="chService"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="fa fa-id-card text-primary me-2"></i>Customer Types</h6>
+                    <div class="chart-box sm"><canvas id="chType"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 4: leaderboard + follow-ups -->
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-3"><i class="fa fa-trophy text-warning me-2"></i>Top Performers</h6>
+                    <div id="rank"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card panel">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="fa fa-calendar-check text-success me-2"></i>Next Follow-ups</h6>
+                    <div id="followups"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        window.dashUrl = '@Url.Page("/Dashboard/Index", "Data")';
+    </script>
+    <script src="/Pages/Dashboard/Index.js"></script>
+}
