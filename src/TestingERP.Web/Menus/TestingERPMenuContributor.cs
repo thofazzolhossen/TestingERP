@@ -89,7 +89,6 @@ public class TestingERPMenuContributor : IMenuContributor
                 order: 4
             )
         );
-
         crmMenu.AddItem(new ApplicationMenuItem(
             "CRM.Leads",
             "Leads",
@@ -99,21 +98,28 @@ public class TestingERPMenuContributor : IMenuContributor
 
         crmMenu.AddItem(new ApplicationMenuItem(
             "CRM.Settings",
-            "Settings",
+            "Messenger Settings",
             url: "/Messenger/Settings",
             icon: "fa fa-plug"
         ));
-        crmMenu.AddItem(new ApplicationMenuItem(
+/*        crmMenu.AddItem(new ApplicationMenuItem(
             "CRM.Settings",
             "Settings",
             url: "/Sheets/Settings",
             icon: "fa fa-plug"
-        ));
+        ));*/
         crmMenu.AddItem(new ApplicationMenuItem(
             "CRM.SheetSettings",
             "Google Sheets",
             url: "/Sheets/Settings",
             icon: "fa-brands fa-google-drive"
+        ));
+
+        crmMenu.AddItem(new ApplicationMenuItem(
+            "CRM.Dashboard",
+            "Dashboard",
+            url: "/Dashboard",
+            icon: "fa fa-tachometer-alt"
         ));
 
         context.Menu.AddItem(crmMenu);
