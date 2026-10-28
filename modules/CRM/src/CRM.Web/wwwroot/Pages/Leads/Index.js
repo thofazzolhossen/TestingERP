@@ -44,18 +44,18 @@
         ],
 
         columnDefs: [
-            { field: "name", headerName: "Lead Name", flex: 1.5 },
+            { field: "name", headerName: "Lead Name", flex: 0.5 },
             { field: "companyName", headerName: "Company", flex: 1.2 },
             { field: "assignedUserName", headerName: "Assigned", flex: 1.2 },
-            { field: "email", headerName: "Email", flex: 1.2 },
-            { field: "phone", headerName: "Phone", width: 130 },
+            //{ field: "email", headerName: "Email", flex: 1.2 },
+            { field: "phone", headerName: "Phone", flex: 2 },
             { field: "customerTypeName", headerName: "Customer Type", flex: 1 },
-            { field: "leadSourceName", headerName: "Source", flex: 1 },
+            //{ field: "leadSourceName", headerName: "Source", flex: 1 },
             { field: "leadStageName", headerName: "Stage", flex: 1 },
             { field: "serviceName", headerName: "Service", flex: 1 },
             {
                 headerName: "Actions",
-                width: 120,
+                flex: 2,
                 filter: false,
                 sortable: false,
                 cellRenderer: function (params) {
@@ -64,7 +64,12 @@
                     const encodedRow = encodeURIComponent(JSON.stringify(params.data));
 
                     return `
-                        <div class="d-flex align-items-center h-100 gap-2">
+                        <div class="d-flex align-items-center h-100 gap-1">
+                        <a href="/Leads/Details?id=${params.data.id}"
+                           class="btn btn-sm btn-outline-info border-0 view-button"
+                           title="View Lead Details">
+                            <i class="fa fa-eye"></i>
+                        </a>
                             <button type="button" class="btn btn-sm btn-outline-primary border-0 edit-button" 
                                     data-row="${encodedRow}" title="Edit">
                                 <i class="fa fa-edit"></i>

@@ -21,6 +21,7 @@ public class CRMDbContext : AbpDbContext<CRMDbContext>
     public DbSet<Service> Services { get; set; }
     public DbSet<LeadStage> LeadStages { get; set; }
     public DbSet<Lead> Leads { get; set; }
+    public DbSet<LeadStageHistory> LeadStageHistories { get; set; }
 
     public DbSet<MessengerConversation> MessengerConversations { get; set; }
     public DbSet<MessengerMessage> MessengerMessages { get; set; }

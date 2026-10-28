@@ -1,0 +1,639 @@
+﻿@page
+@model CRM.Web.Pages.Leads.DetailsModel
+@{
+    ViewData["Title"] = "Lead Details";
+    var l = Model.Lead;
+    var initials = string.IsNullOrWhiteSpace(l.Name)
+        ? "LD"
+        : string.Concat(l.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2).Select(s => char.ToUpperInvariant(s[0])));
+    var stageName = string.IsNullOrWhiteSpace(l.LeadStageName) ? "Unassigned Stage" : l.LeadStageName;
+    var customerType = string.IsNullOrWhiteSpace(l.CustomerTypeName) ? "Not specified" : l.CustomerTypeName;
+    var leadSource = string.IsNullOrWhiteSpace(l.LeadSourceName) ? "Not specified" : l.LeadSourceName;
+    var serviceName = string.IsNullOrWhiteSpace(l.ServiceName) ? "Not specified" : l.ServiceName;
+    var assignedName = string.IsNullOrWhiteSpace(l.AssignedUserName) ? "Not assigned" : l.AssignedUserName;
+}
+
+<style>
+    .lead-page {
+        --lp-text: #172b4d;
+        --lp-muted: #718096;
+        --lp-border: #e5eaf2;
+        --lp-primary: #4169f5;
+        color: var(--lp-text);
+        font-size: 14px;
+    }
+
+        .lead-page .card {
+            border: 1px solid var(--lp-border) !important;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(23,43,77,.025);
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .lead-page .card-header {
+            background: #fff;
+            border-bottom: 1px solid #edf0f5;
+            padding: 16px 20px;
+        }
+
+        .lead-page .card-body {
+            padding: 20px;
+        }
+
+    .lead-hero {
+        background: linear-gradient(115deg,#fff 0%,#f8faff 100%);
+        border: 1px solid var(--lp-border);
+        border-radius: 16px;
+        padding: 24px;
+    }
+
+    .lead-avatar {
+        width: 62px;
+        height: 62px;
+        flex: 0 0 62px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 800;
+        background: linear-gradient(145deg,#6385ff,#3855d9);
+        box-shadow: 0 7px 18px rgba(65,105,245,.2);
+    }
+
+    .lead-eyebrow {
+        color: var(--lp-muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+    }
+
+    .lead-title {
+        margin: 0;
+        color: var(--lp-text);
+        font-size: clamp(1.5rem,2vw,1.9rem);
+        font-weight: 800;
+        letter-spacing: -.04em;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-contact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin-top: 10px;
+        color: var(--lp-muted);
+        font-size: 13px;
+    }
+
+        .lead-contact i {
+            color: #98a2b3;
+        }
+
+    .lead-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .lead-pill-primary {
+        color: #3656d8;
+        background: #edf2ff;
+    }
+
+    .lead-pill-neutral {
+        color: #536176;
+        background: #f0f3f7;
+    }
+
+    .lead-pill-success {
+        color: #128052;
+        background: #e8f8ef;
+    }
+
+    .lead-switch {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 10px;
+        background: #f0f3f8;
+    }
+
+        .lead-switch .btn {
+            border: 0;
+            border-radius: 7px !important;
+            padding: 9px 13px;
+            background: transparent;
+            color: #66748a;
+            font-size: 12px;
+            font-weight: 750;
+            box-shadow: none;
+        }
+
+            .lead-switch .btn.active {
+                background: #fff;
+                color: #3656d8;
+                box-shadow: 0 1px 4px rgba(20,35,70,.12);
+            }
+
+    .lead-kpi {
+        height: 100%;
+        min-height: 122px;
+        padding: 17px 18px;
+        border: 1px solid var(--lp-border);
+        border-radius: 13px;
+        background: #fff;
+    }
+
+    .lead-kpi-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .lead-kpi-label {
+        color: var(--lp-muted);
+        font-size: 12px;
+        font-weight: 650;
+    }
+
+    .lead-kpi-icon {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 11px;
+        background: #edf2ff;
+        color: #4169f5;
+        font-size: 16px;
+    }
+
+    .lead-kpi-value {
+        margin-top: 8px;
+        color: #203654;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -.025em;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-kpi-note {
+        margin-top: 3px;
+        color: #8792a5;
+        font-size: 11px;
+    }
+
+    .lead-kpi.budget .lead-kpi-icon {
+        background: #e8f8ef;
+        color: #15945b;
+    }
+
+    .lead-kpi.budget .lead-kpi-value {
+        color: #128052;
+    }
+
+    .lead-kpi.followup .lead-kpi-icon {
+        background: #fff4dc;
+        color: #b77908;
+    }
+
+    .lead-kpi.close-date .lead-kpi-icon {
+        background: #f3eaff;
+        color: #8548c8;
+    }
+
+    .lead-section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .lead-section-icon {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        color: #4169f5;
+        background: #edf2ff;
+    }
+
+    .lead-field {
+        height: 100%;
+        min-width: 0;
+        padding: 13px 14px;
+        border: 1px solid #edf0f5;
+        border-radius: 10px;
+        background: #fafbfe;
+    }
+
+    .lead-field-label {
+        margin-bottom: 6px;
+        color: #8792a5;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    .lead-field-value {
+        color: #263954;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-field-sub {
+        margin-top: 5px;
+        color: #9aa4b4;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-budget {
+        border-color: #d6f0df;
+        background: linear-gradient(135deg,#f0fbf4,#fbfffc);
+    }
+
+        .lead-budget .lead-field-value {
+            color: #128052;
+            font-size: 17px;
+        }
+
+    .lead-metadata-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid #f0f2f6;
+    }
+
+        .lead-metadata-row:last-child {
+            border-bottom: 0;
+        }
+
+    .lead-metadata-label {
+        color: var(--lp-muted);
+        font-size: 12px;
+    }
+
+    .lead-metadata-value {
+        max-width: 66%;
+        color: #354660;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-history-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .lead-history-search {
+        width: min(100%,300px);
+        position: relative;
+    }
+
+        .lead-history-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #98a2b3;
+        }
+
+        .lead-history-search input {
+            padding-left: 35px;
+            border-radius: 9px;
+            border-color: var(--lp-border);
+            font-size: 12px;
+            min-height: 40px;
+        }
+
+    .stage-timeline {
+        position: relative;
+        padding-left: 28px;
+    }
+
+        .stage-timeline::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 9px;
+            bottom: 14px;
+            width: 2px;
+            background: #e4e9f2;
+        }
+
+    .stage-timeline-item {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    .stage-timeline-dot {
+        position: absolute;
+        left: -27px;
+        top: 18px;
+        width: 16px;
+        height: 16px;
+        box-sizing: content-box;
+        border: 4px solid #e0e8ff;
+        border-radius: 50%;
+        background: #4169f5;
+    }
+
+    .stage-history-card {
+        padding: 15px;
+        border: 1px solid var(--lp-border);
+        border-radius: 11px;
+        background: #fff;
+    }
+
+        .stage-history-card:hover {
+            border-color: #c9d5ff;
+        }
+
+    .stage-transition {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 9px 0;
+    }
+
+    .stage-name {
+        padding: 5px 9px;
+        border-radius: 7px;
+        color: #44536a;
+        background: #f0f3f7;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .stage-name-new {
+        color: #3656d8;
+        background: #edf2ff;
+    }
+
+    .lead-history-table {
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+        .lead-history-table thead th {
+            padding: 12px 14px;
+            color: #6b7890;
+            background: #f8f9fc;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            border-bottom: 1px solid var(--lp-border);
+        }
+
+        .lead-history-table tbody td {
+            padding: 13px 14px;
+            border-color: #f0f2f6;
+            vertical-align: middle;
+        }
+
+    .lead-empty {
+        padding: 48px 16px;
+        color: var(--lp-muted);
+        text-align: center;
+    }
+
+    .lead-empty-icon {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 13px;
+        border-radius: 15px;
+        color: #6b7890;
+        background: #f0f3f7;
+        font-size: 20px;
+    }
+
+    @@media (max-width: 767.98px) {
+        .lead-hero {
+            padding: 17px;
+        }
+
+        .lead-page .card-body {
+            padding: 16px;
+        }
+
+        .lead-page .card-header {
+            padding: 14px 16px;
+        }
+
+        .lead-avatar {
+            width: 50px;
+            height: 50px;
+            flex-basis: 50px;
+            border-radius: 15px;
+        }
+
+        .lead-switch {
+            width: 100%;
+        }
+
+            .lead-switch .btn {
+                flex: 1;
+                padding: 9px 5px;
+            }
+
+        .lead-history-search {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid lead-page py-3">
+    <!-- Lead profile header -->
+    <div class="lead-hero mb-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="lead-avatar">@initials</div>
+                <div class="pt-1">
+                    <div class="lead-eyebrow mb-2">CRM / Leads / Details</div>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <h1 class="lead-title">@l.Name</h1>
+                        <span class="lead-pill lead-pill-primary"><i class="fa fa-layer-group"></i>@stageName</span>
+                        <span class="lead-pill lead-pill-neutral">@customerType</span>
+                    </div>
+                    <div class="lead-contact">
+                        <span><i class="fa fa-envelope me-1"></i>@(string.IsNullOrWhiteSpace(l.Email) ? "No email provided" : l.Email)</span>
+                        <span><i class="fa fa-phone me-1"></i>@(string.IsNullOrWhiteSpace(l.Phone) ? "No phone provided" : l.Phone)</span>
+                        <span><i class="fa fa-building me-1"></i>@(string.IsNullOrWhiteSpace(l.CompanyName) ? "No company provided" : l.CompanyName)</span>
+                    </div>
+                </div>
+            </div>
+            <a href="/Leads" class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2"><i class="fa fa-arrow-left me-2"></i>Back to Leads</a>
+        </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 pt-3 border-top">
+            <div class="text-muted small"><i class="fa fa-calendar-plus me-1"></i>Added @l.CreationTime.ToString("dd MMM yyyy") <span class="mx-2">·</span><i class="fa fa-user me-1"></i>@(string.IsNullOrWhiteSpace(l.CreatorUserName) ? "Unknown creator" : l.CreatorUserName)</div>
+            <div class="lead-switch" role="group" aria-label="Lead profile sections">
+                <button type="button" class="btn active" id="BtnDetails" aria-pressed="true"><i class="fa fa-id-card me-2"></i>Overview</button>
+                <button type="button" class="btn" id="BtnStageHistory" aria-pressed="false"><i class="fa fa-clock-rotate-left me-2"></i>Stage History <span class="badge bg-primary-subtle text-primary ms-1" id="StageRecordCount">0</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overview section: summary cards and detail cards -->
+    <section id="SectionDetails">
+        <div class="row g-3 mb-4">
+            <div class="col-3 col-xl-3"><div class="lead-kpi budget"><div class="lead-kpi-top"><div class="lead-kpi-label">Estimated budget</div><div class="lead-kpi-icon"><i class="fa fa-wallet"></i></div></div><div class="lead-kpi-value">@l.EstimatedBudget.ToString("N2")</div><div class="lead-kpi-note">Potential deal value</div></div></div>
+            <div class="col-3 col-xl-3"><div class="lead-kpi"><div class="lead-kpi-top"><div class="lead-kpi-label">Current stage</div><div class="lead-kpi-icon"><i class="fa fa-bullseye"></i></div></div><div class="lead-kpi-value">@stageName</div><div class="lead-kpi-note">Lead pipeline status</div></div></div>
+            <div class="col-3 col-xl-3"><div class="lead-kpi followup"><div class="lead-kpi-top"><div class="lead-kpi-label">Next follow-up</div><div class="lead-kpi-icon"><i class="fa fa-calendar-check"></i></div></div><div class="lead-kpi-value">@(l.NextFollowUpDate.HasValue ? l.NextFollowUpDate.Value.ToString("dd MMM yyyy") : "Not scheduled")</div><div class="lead-kpi-note">Planned next contact</div></div></div>
+            <div class="col-3 col-xl-3"><div class="lead-kpi close-date"><div class="lead-kpi-top"><div class="lead-kpi-label">Expected close</div><div class="lead-kpi-icon"><i class="fa fa-flag-checkered"></i></div></div><div class="lead-kpi-value">@(l.ExpectedCloseDate.HasValue ? l.ExpectedCloseDate.Value.ToString("dd MMM yyyy") : "Not scheduled")</div><div class="lead-kpi-note">Target closing date</div></div></div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-xl-8">
+                <div class="card mb-3">
+                    <div class="card-header"><h2 class="lead-section-title"><span class="lead-section-icon"><i class="fa fa-address-card"></i></span>Contact information</h2></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Full name</div><div class="lead-field-value">@l.Name</div></div></div>
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Company</div><div class="lead-field-value">@(string.IsNullOrWhiteSpace(l.CompanyName) ? "Not provided" : l.CompanyName)</div></div></div>
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Email address</div><div class="lead-field-value">@(string.IsNullOrWhiteSpace(l.Email) ? "Not provided" : l.Email)</div></div></div>
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Phone number</div><div class="lead-field-value">@(string.IsNullOrWhiteSpace(l.Phone) ? "Not provided" : l.Phone)</div></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><h2 class="lead-section-title"><span class="lead-section-icon"><i class="fa fa-sliders"></i></span>Lead qualification</h2></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Customer type</div><div class="lead-field-value">@customerType</div><div class="lead-field-sub">ID: @l.CustomerTypeId</div></div></div>
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Lead source</div><div class="lead-field-value">@leadSource</div><div class="lead-field-sub">ID: @l.LeadSourceId</div></div></div>
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Required service</div><div class="lead-field-value">@serviceName</div><div class="lead-field-sub">ID: @l.ServiceId</div></div></div>
+                            <div class="col-md-6"><div class="lead-field"><div class="lead-field-label">Assigned to</div><div class="lead-field-value"><i class="fa fa-user-check text-success me-2"></i>@assignedName</div><div class="lead-field-sub">User ID: @(l.AssignedUserId?.ToString() ?? "None")</div></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><h2 class="lead-section-title"><span class="lead-section-icon"><i class="fa fa-briefcase"></i></span>Deal notes</h2></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12"><div class="lead-field lead-budget"><div class="lead-field-label">Estimated budget</div><div class="lead-field-value">@l.EstimatedBudget.ToString("N2")</div></div></div>
+                            <div class="col-12"><div class="lead-field"><div class="lead-field-label">Remarks &amp; notes</div><div class="lead-field-value fw-normal" style="white-space:pre-wrap">@(string.IsNullOrWhiteSpace(l.Remarks) ? "No notes have been recorded for this lead." : l.Remarks)</div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="col-xl-4">
+                <div class="card mb-3">
+                    <div class="card-header"><h2 class="lead-section-title"><span class="lead-section-icon"><i class="fa fa-user-tie"></i></span>Ownership</h2></div>
+                    <div class="card-body">
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Assigned to</div><div class="lead-metadata-value">@assignedName</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Lead source</div><div class="lead-metadata-value">@leadSource</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Service</div><div class="lead-metadata-value">@serviceName</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Current stage</div><div class="lead-metadata-value"><span class="lead-pill lead-pill-primary">@stageName</span></div></div>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header"><h2 class="lead-section-title"><span class="lead-section-icon"><i class="fa fa-shield-halved"></i></span>System information</h2></div>
+                    <div class="card-body">
+@*                         <div class="lead-metadata-row"><div class="lead-metadata-label">Lead ID</div><div class="lead-metadata-value font-monospace">@l.Id</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Tenant ID</div><div class="lead-metadata-value font-monospace">@(l.TenantId?.ToString() ?? "Host (Null)")</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">External sync ID</div><div class="lead-metadata-value font-monospace">@(string.IsNullOrWhiteSpace(l.ExternalId) ? "Not linked" : l.ExternalId)</div></div>
+                         *@
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Created</div><div class="lead-metadata-value">@l.CreationTime.ToString("dd MMM yyyy, HH:mm")</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Created by</div><div class="lead-metadata-value">@(l.CreatorUserName ?? "Unknown")</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Last modified</div><div class="lead-metadata-value">@(l.LastModificationTime?.ToString("dd MMM yyyy, HH:mm") ?? "Never modified")</div></div>
+                        <div class="lead-metadata-row"><div class="lead-metadata-label">Modified by</div><div class="lead-metadata-value">@(l.LastModifierUserName ?? "—")</div></div>
+@*                         <div class="lead-metadata-row"><div class="lead-metadata-label">Concurrency stamp</div><div class="lead-metadata-value font-monospace">@(string.IsNullOrWhiteSpace(l.ConcurrencyStamp) ? "—" : l.ConcurrencyStamp)</div></div>
+ *@                    </div>
+                </div>
+                <div class="card"><div class="card-body"><div class="d-flex gap-3 align-items-start"><span class="lead-section-icon"><i class="fa fa-circle-info"></i></span><div><div class="fw-bold mb-1">Lead audit trail</div><div class="text-muted small">Use Stage History to review previous stage transitions, who changed them, and when each change occurred.</div></div></div></div></div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Stage history section; IDs retained for existing Details.js -->
+    <section id="SectionStageRecord" class="d-none">
+        <div class="card">
+            <div class="card-header">
+                <div class="lead-history-toolbar">
+                    <div>
+                        <h2 class="lead-section-title mb-1"><span class="lead-section-icon"><i class="fa fa-clock-rotate-left"></i></span>Stage history</h2>
+                        <div class="text-muted small ms-1 mt-2">A chronological record of this lead's stage changes.</div>
+                    </div>
+                    <div class="lead-history-search">
+                        <i class="fa fa-search"></i>
+                        <input id="StageHistorySearch" type="search" class="form-control" placeholder="Search stage, user or remarks..." aria-label="Search stage history">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="StageHistoryLoader" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <div class="fw-semibold">Loading stage history</div>
+                    <div class="text-muted small mt-1">Fetching the latest audit records...</div>
+                </div>
+                <div id="StageHistoryError" class="alert alert-danger d-none" role="alert">
+                    <i class="fa fa-circle-exclamation me-2"></i>
+                    Could not load stage history.
+                    <button type="button" id="RetryStageHistory" class="btn btn-sm btn-outline-danger ms-2">Try again</button>
+                </div>
+                <div id="StageHistoryEmpty" class="lead-empty d-none">
+                    <div class="lead-empty-icon"><i class="fa fa-clock-rotate-left"></i></div>
+                    <div class="fw-bold text-dark mb-1">No stage changes yet</div>
+                    <div class="small">Stage transitions will appear here when this lead's stage is changed.</div>
+                </div>
+                <div id="StageHistoryContent" class="d-none">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center justify-content-between mb-3"><div class="fw-bold">Transition timeline</div><span class="text-muted small">Newest first</span></div>
+                            <div class="stage-timeline" id="StageTimelineList"></div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-center justify-content-between mb-3"><div class="fw-bold">Audit records</div><span class="text-muted small">Detailed view</span></div>
+                            <div class="table-responsive border rounded-3">
+                                <table class="table table-hover align-middle mb-0 lead-history-table">
+                                    <thead><tr><th>#</th><th>Transition</th><th>Changed by</th><th>Date &amp; time</th><th>Remarks</th></tr></thead>
+                                    <tbody id="StageHistoryTableBody"></tbody>
+                                </table>
+                            </div>
+                            <div id="StageHistoryNoSearchResults" class="text-muted small text-center p-4 d-none">No records match your search.</div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section scripts {
+    <script>
+        window.leadDetailConfig = {
+            leadId: '@Model.Lead.Id',
+            stageHistoryUrl: '@Html.Raw(Url.Page("/Leads/Details", "StageHistory", new { id = Model.Lead.Id }))'
+        };
+    </script>
+    <script src="~/Pages/Leads/Details.js" asp-append-version="true"></script>
+}
