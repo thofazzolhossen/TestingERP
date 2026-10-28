@@ -58,6 +58,18 @@ public static class CRMDbContextModelCreatingExtensions
             b.HasOne<LeadSource>().WithMany().HasForeignKey(x => x.LeadSourceId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<LeadStage>().WithMany().HasForeignKey(x => x.LeadStageId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<Service>().WithMany().HasForeignKey(x => x.ServiceId).OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(x => new { x.TenantId, x.NextFollowUpDate });
+        });
+
+        builder.Entity<LeadStageHistory>(b =>
+        {
+            b.ToTable("CrmLeadStageHistories");
+            b.ConfigureByConvention();
+            b.Property(x => x.Remarks).HasMaxLength(512);
+
+            // Composite index for O(log N) lookup sorted by CreationTime
+            b.HasIndex(x => new { x.TenantId, x.LeadId, x.CreationTime });
         });
 
         builder.Entity<SheetConnection>(b =>

@@ -97,6 +97,13 @@ public class TestingERPMenuContributor : IMenuContributor
         ));
 
         crmMenu.AddItem(new ApplicationMenuItem(
+            "CRM.FollowUps",
+            "Follow-Ups",
+            url: "/FollowUps",
+            icon: "fa fa-calendar-check"
+        ));
+
+        crmMenu.AddItem(new ApplicationMenuItem(
             "CRM.Settings",
             "Messenger Settings",
             url: "/Messenger/Settings",

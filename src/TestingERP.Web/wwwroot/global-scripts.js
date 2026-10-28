@@ -1,3 +1,6 @@
+
+
+
 // =========================================================
 // COMMON REUSABLE AG GRID (ABP.io)
 // =========================================================
@@ -233,7 +236,7 @@ window.createCommonGrid = function (config) {
 
     const gridId = config.gridId;
     const title = config.title;
-    const height = config.height || "520px";
+    const height = config.height || "";
     const showSearch = config.showSearch !== false;
     const showExport = config.showExport !== false;
     const exportFileName = config.exportFileName || `${gridId}.csv`;
@@ -249,27 +252,26 @@ window.createCommonGrid = function (config) {
     // Build professional card UI if not already present
     if (!gridDiv.closest(".common-ag-card")) {
         const wrapper = document.createElement("div");
-        wrapper.className = "card shadow-sm border rounded-3 overflow-hidden p-1 common-ag-card";
+        wrapper.className = "card common-ag-card";
         wrapper.innerHTML = `
-            <div class="card-body bg-white d-flex justify-content-between align-items-center mb-0" id="${gridId}_header">
+            <div class="card-body bg-white d-flex justify-content-between align-items-center flex-wrap gap-3 mb-0 grid-header" id="${gridId}_header">
                 <div>
-                    <h5 class="mb-0 fw-semibold text-dark" id="${gridId}_title">${title}</h5>
-                    <span id="${gridId}_rowCount" class="text-muted small">Loading entries...</span>
+                    <h5 class="mb-0 fw-semibold text-dark grid-title" id="${gridId}_title">${title}</h5>
+                    <span id="${gridId}_rowCount" class="text-muted small grid-count">Loading entries...</span>
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap grid-actions">
                     ${showSearch ? `
                     <input type="text"
                            id="${gridId}_search"
-                           class="form-control form-control-sm"
-                           placeholder="Search..."
-                           style="width: 200px;">
+                           class="form-control form-control-sm grid-search"
+                           placeholder="Search...">
                     ` : ""}
                     <div id="${gridId}_buttonGroup" class="d-flex align-items-center gap-2"></div>
                 </div>
             </div>
             <div id="${gridId}_container"
-                 style="height: ${height}; width: 100%;"
-                 class="ag-theme-quartz"></div>
+                 style="${height ? `height: ${height}; ` : ""}width: 100%;"
+                 class="ag-theme-quartz ag-theme-crm grid-body"></div>
         `;
 
         // Move the original div into the new structure
@@ -324,6 +326,8 @@ window.createCommonGrid = function (config) {
         filter: CheckboxSetFilter,
         sortable: true,
         resizable: true,
+        //minWidth: 120,
+        //suppressHeaderMenuButton: true,
         cellStyle: {
             borderRight: "1px solid #dee2e6",
             borderBottom: "1px solid #dee2e6",
@@ -366,7 +370,7 @@ window.createCommonGrid = function (config) {
             type: 'fitGridWidth'
         },
         alwaysShowHorizontalScroll: false,
-        suppressHorizontalScroll: false,
+        suppressHorizontalScroll: true,
 
         defaultColDef,
         columnDefs,

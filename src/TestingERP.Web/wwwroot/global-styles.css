@@ -208,3 +208,329 @@
     padding: 0 !important;
     margin: 0 !important;
 }
+
+
+
+
+
+
+
+
+
+/* ---------- Card (header + grid + footer) ---------- */
+.common-ag-card {
+    background: #fff;
+    border: 1px solid #e8edf4 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+/* the global ".lpx-content .ag-theme-quartz" rule must not add a 2nd border/shadow inside the card */
+.lpx-content .common-ag-card .ag-theme-crm {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* ---------- Card header ---------- */
+.common-ag-card .grid-header {
+    padding: 16px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.common-ag-card .grid-title {
+    font-size: 14px;
+    font-weight: 750 !important;
+}
+
+.common-ag-card .grid-count {
+    color: #8792a5 !important;
+    font-size: 12px;
+}
+
+.common-ag-card .grid-search {
+    width: 220px;
+    font-size: 12px;
+    min-height: 36px;
+    border-color: #e1e7ef;
+}
+
+    .common-ag-card .grid-search:focus {
+        box-shadow: 0 0 0 3px #4778ee17;
+        border-color: #8eabfa;
+    }
+
+.common-ag-card .grid-actions .form-control {
+    font-size: 12px;
+    min-height: 36px;
+    border-color: #e1e7ef;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.common-ag-card .grid-actions button.form-control:hover {
+    background: #edf2ff !important;
+    color: #3867e8 !important;
+}
+
+/* ---------- Grid body: responsive height ---------- */
+.common-ag-card .grid-body {
+    width: 100%;
+    height: clamp(480px, calc(100vh - 220px), 720px);
+}
+
+/* ---------- Theme variables ---------- */
+.ag-theme-crm {
+    --ag-font-family: inherit;
+    --ag-font-size: 13px;
+    --ag-foreground-color: #263449;
+    --ag-background-color: #ffffff;
+    --ag-odd-row-background-color: #ffffff;
+    --ag-border-color: #edf1f6;
+    --ag-row-border-color: #edf1f6;
+    --ag-row-border-style: solid;
+    --ag-row-border-width: 1px;
+    --ag-row-hover-color: #fafcff;
+    --ag-selected-row-background-color: #edf2ff;
+    --ag-header-background-color: #f8fafd;
+    --ag-header-foreground-color: #738097;
+    --ag-header-height: 44px;
+    --ag-row-height: 52px;
+    --ag-cell-horizontal-padding: 12px;
+    --ag-header-column-separator-display: none;
+    --ag-header-column-resize-handle-display: none;
+    --ag-wrapper-border-radius: 0;
+    --ag-borders: none;
+    --ag-borders-critical: none;
+    --ag-borders-secondary: none;
+    --ag-input-focus-border-color: #8eabfa;
+    --ag-input-focus-box-shadow: 0 0 0 3px #4778ee17;
+}
+
+    .ag-theme-crm .ag-root-wrapper {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    /* ---------- Header ---------- */
+    .ag-theme-crm .ag-header {
+        border-bottom: 1px solid #e7edf5;
+    }
+
+    .ag-theme-crm .ag-header-cell {
+        padding: 0 12px;
+    }
+
+    .ag-theme-crm .ag-header-cell-label {
+        justify-content: flex-start;
+    }
+
+    .ag-theme-crm .ag-header-cell-text {
+        font-size: 10px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: .45px;
+        color: #738097;
+    }
+
+    .ag-theme-crm .ag-header-cell.hdr-center .ag-header-cell-label {
+        justify-content: center;
+    }
+
+    .ag-theme-crm .ag-header-cell-filter-button {
+        color: #738097;
+        border-radius: 6px;
+    }
+
+        .ag-theme-crm .ag-header-cell-filter-button:hover {
+            background: #edf2ff;
+            color: #3867e8;
+        }
+
+    .ag-theme-crm .ag-header-cell-filtered .ag-header-cell-filter-button {
+        background: #edf2ff;
+        color: #3867e8;
+    }
+
+    .ag-theme-crm .ag-header-icon {
+        color: #738097;
+    }
+
+    /* ---------- Rows & cells (this also overrides the inline cell borders set in cellStyle) ---------- */
+    .ag-theme-crm .ag-row {
+        border-bottom: 1px solid #edf1f6;
+    }
+
+    .ag-theme-crm .ag-row-hover {
+        background: #fafcff;
+    }
+
+    .ag-theme-crm .ag-cell {
+        display: flex;
+        align-items: center;
+        line-height: 1.4;
+        padding: 0 12px;
+        border: 0 !important;
+        outline: none !important;
+    }
+
+    .ag-theme-crm .ag-cell-wrapper, .ag-theme-crm .ag-cell-value {
+        width: 100%;
+    }
+
+    .ag-theme-crm .ag-cell-focus, .ag-theme-crm .ag-header-cell:focus-visible {
+        outline: none;
+    }
+
+    .ag-theme-crm .ag-cell.cell-center {
+        justify-content: center;
+    }
+
+    .ag-theme-crm .ag-overlay-no-rows-wrapper {
+        background: transparent;
+        color: #8792a5;
+    }
+
+    .ag-theme-crm .ag-body-horizontal-scroll {
+        border-top: 1px solid #edf1f6;
+    }
+
+    /* ---------- Footer (pagination panel) ---------- */
+    .ag-theme-crm .ag-paging-panel {
+        min-height: 56px;
+        height: auto;
+        flex-wrap: wrap;
+        row-gap: 6px;
+        justify-content: flex-end;
+        padding: 8px 16px;
+        border-top: 1px solid #edf1f6;
+        background: #fff;
+        color: #8792a5;
+        font-size: 13px;
+        gap: 12px;
+    }
+
+    .ag-theme-crm .ag-paging-page-size .ag-picker-field-wrapper {
+        border: 1px solid #e1e7ef;
+        border-radius: 6px;
+        min-height: 30px;
+    }
+
+    .ag-theme-crm .ag-paging-button {
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+        .ag-theme-crm .ag-paging-button:not(.ag-disabled):hover {
+            background: #edf2ff;
+            color: #3867e8;
+        }
+
+    .ag-theme-crm .ag-paging-row-summary-panel-number,
+    .ag-theme-crm .ag-paging-page-summary-panel {
+        color: #516078;
+        font-weight: 600;
+    }
+
+    /* ---------- Optional helpers for cell renderers (badges, avatars, action buttons) ---------- */
+    .ag-theme-crm .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 750;
+        background: #e8efff;
+        color: #3867e8;
+        flex-shrink: 0;
+    }
+
+.badge-soft {
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.badge-red {
+    color: #d64045;
+    background: #fff0f0;
+}
+
+.badge-amber {
+    color: #b77912;
+    background: #fff7df;
+}
+
+.badge-green {
+    color: #16866b;
+    background: #e9f9f3;
+}
+
+.badge-blue {
+    color: #3867e8;
+    background: #edf2ff;
+}
+
+.action-btn {
+    width: 29px;
+    height: 29px;
+    border: 1px solid #e7ebf2;
+    border-radius: 7px;
+    background: #fff;
+    color: #62718a;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+    .action-btn:hover {
+        background: #edf2ff;
+        color: #3867e8;
+        border-color: #d6e1ff;
+    }
+
+    .action-btn.danger:hover {
+        background: #fff0f0;
+        color: #d64045;
+        border-color: #ffd5d6;
+    }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 767.98px) {
+    .common-ag-card .grid-header {
+        padding: 12px;
+    }
+
+    .common-ag-card .grid-actions {
+        flex: 1 1 100%;
+    }
+
+    .common-ag-card .grid-search {
+        flex: 1 1 140px;
+        width: auto;
+        min-width: 0;
+    }
+
+    .common-ag-card .grid-body {
+        height: clamp(440px, calc(100vh - 240px), 680px);
+    }
+
+    .ag-theme-crm .ag-paging-panel {
+        justify-content: center;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .ag-theme-crm .ag-paging-row-summary-panel {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+}

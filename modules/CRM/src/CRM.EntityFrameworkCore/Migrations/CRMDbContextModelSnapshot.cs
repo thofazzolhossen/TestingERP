@@ -350,6 +350,43 @@ namespace CRM.Migrations
                     b.ToTable("CrmLeads", (string)null);
                 });
 
+            modelBuilder.Entity("CRM.Leads.LeadStageHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid>("LeadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("NewStageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("OldStageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "LeadId", "CreationTime");
+
+                    b.ToTable("CrmLeadStageHistories", (string)null);
+                });
+
             modelBuilder.Entity("CRM.Messenger.MessengerConversation", b =>
                 {
                     b.Property<Guid>("Id")

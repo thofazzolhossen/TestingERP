@@ -59,6 +59,12 @@ public class CRMMenuContributor : IMenuContributor
             url: "/Leads",
             icon: "fa fa-user-tie"
         ));
+        crmMenu.AddItem(new ApplicationMenuItem(
+            CRMMenus.FollowUps,
+            "Follow-Ups",
+            url: "/FollowUps",
+            icon: "fa fa-calendar-check"
+        ));
 
         crmMenu.AddItem(new ApplicationMenuItem(
             CRMMenus.Settings,
