@@ -5,164 +5,283 @@
 }
 
 @section styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        .dash { --c1:#6366f1; --c2:#06b6d4; --c3:#10b981; --c4:#f59e0b; --c5:#ef4444; }
-        .dash .kpi { border:0; border-radius:16px; color:#fff; position:relative; overflow:hidden;
-                     box-shadow:0 8px 24px -10px rgba(15,23,42,.35); transition:transform .2s; }
-        .dash .kpi:hover { transform:translateY(-3px); }
-        .dash .kpi .card-body { padding:1.1rem 1.25rem; }
-        .dash .kpi .label { font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; opacity:.85; }
-        .dash .kpi .value { font-size:1.9rem; font-weight:800; line-height:1.15; }
-        .dash .kpi .sub { font-size:.78rem; opacity:.9; }
-        .dash .kpi .ico { position:absolute; right:-6px; bottom:-14px; font-size:4.6rem; opacity:.16; }
-        .k1 { background:linear-gradient(135deg,#6366f1,#8b5cf6); }
-        .k2 { background:linear-gradient(135deg,#06b6d4,#3b82f6); }
-        .k3 { background:linear-gradient(135deg,#10b981,#14b8a6); }
-        .k4 { background:linear-gradient(135deg,#f59e0b,#f97316); }
-        .k5 { background:linear-gradient(135deg,#ef4444,#ec4899); }
-        .dash .panel { border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 4px 14px -8px rgba(15,23,42,.18); height:100%; }
-        .dash .panel h6 { font-weight:700; color:#334155; margin:0; }
-        .dash .chart-box { position:relative; height:260px; }
-        .dash .chart-box.sm { height:230px; }
-        .dash .pill { font-size:.72rem; padding:.15rem .5rem; border-radius:999px; font-weight:600; }
-        .dash .up { background:rgba(255,255,255,.22); }
-        .dash .fu { display:flex; align-items:center; gap:.7rem; padding:.55rem 0; border-bottom:1px dashed #e2e8f0; }
-        .dash .fu:last-child { border:0; }
-        .dash .fu .dot { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-                         font-size:.72rem; font-weight:700; flex:0 0 38px; }
-        .dash .fu .late { background:#fee2e2; color:#b91c1c; }
-        .dash .fu .soon { background:#e0e7ff; color:#4338ca; }
-        .dash .fu .today { background:#fef3c7; color:#b45309; }
-        .dash .rank { display:flex; align-items:center; gap:.6rem; margin-bottom:.7rem; }
-        .dash .rank .bar { height:8px; border-radius:6px; background:#e2e8f0; flex:1; overflow:hidden; }
-        .dash .rank .bar i { display:block; height:100%; background:linear-gradient(90deg,#6366f1,#06b6d4); border-radius:6px; }
-        .dash .skel { background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%); background-size:400% 100%;
-                      animation:sk 1.2s infinite; color:transparent !important; border-radius:6px; }
-        @@keyframes sk { 0%{background-position:100% 0} 100%{background-position:0 0} }
-        .dash .empty { color:#94a3b8; text-align:center; padding:2rem 0; font-size:.85rem; }
+        body {
+            background: #f5f7fb;
+            font-family: Inter, Arial, sans-serif;
+            color: #263248;
+            font-size: 13px;
+        }
+
+        .dashboard { padding: 24px; }
+
+        .page-title {
+            font-size: 23px;
+            font-weight: 700;
+            color: #17243b;
+        }
+
+        .subtitle { color: #8490a4; font-size: 12px; }
+
+        .crm-card, .kpi-card {
+            background: #fff;
+            border: 1px solid #e9edf4;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(30, 50, 80, .025);
+        }
+
+        .kpi-card { padding: 17px; height: 100%; }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+        }
+
+        .blue { background: #edf2ff; color: #4263eb; }
+        .green { background: #e7f8ef; color: #20a464; }
+        .orange { background: #fff2e5; color: #e99532; }
+        .purple { background: #f2eefe; color: #7950c5; }
+        .red { background: #ffebeb; color: #d84c4c; }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 3px;
+            color: #202d43;
+        }
+
+        .kpi-footer {
+            font-size: 11px;
+            margin-top: 7px;
+        }
+
+        .crm-card { padding: 18px; height: 100%; }
+
+        .card-heading {
+            font-size: 14px;
+            font-weight: 700;
+            color: #263248;
+        }
+
+        .card-subtitle {
+            color: #98a1b2;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 245px;
+            margin-top: 20px;
+        }
+
+        .pipeline-row { margin-top: 16px; }
+
+        .pipeline-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .progress {
+            height: 8px;
+            background: #edf0f5;
+            border-radius: 20px;
+        }
+
+        .progress-bar { border-radius: 20px; }
+
+        .badge-soft {
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 10px;
+        }
+
+        .badge-success { background: #e7f8ef; color: #15945a; }
+        .badge-warning { background: #fff3df; color: #d68a20; }
+        .badge-danger { background: #ffebeb; color: #d84c4c; }
+        .badge-info { background: #eaf1ff; color: #4263eb; }
+
+        .followup {
+            padding: 11px 0;
+            border-bottom: 1px solid #f0f2f6;
+        }
+        .followup:last-child { border-bottom: 0; }
+        .followup-name { font-weight: 600; font-size: 12px; color: #263248; }
+        .followup-info { font-size: 11px; color: #8c97a9; margin-top: 3px; }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .rank-item:last-child { margin-bottom: 0; }
+        .rank-bar { height: 8px; border-radius: 6px; background: #e2e8f0; flex: 1; overflow: hidden; }
+        .rank-bar i { display: block; height: 100%; background: linear-gradient(90deg,#4263eb,#06b6d4); border-radius: 6px; }
+
+        @@media(max - width: 768px) {
+            .dashboard { padding: 13px; }
+            .kpi-value { font-size: 22px; }
+        }
     </style>
 }
 
-<div class="dash">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="dashboard">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h4 class="fw-bold mb-0">CRM Dashboard</h4>
-            <small class="text-muted">Live overview &middot; <span id="updated">loading…</span></small>
+            <div class="page-title">CRM Dashboard</div>
+            <div class="subtitle">Monitor your sales performance and customer activities</div>
         </div>
-        <button id="btnRefresh" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa fa-rotate me-1"></i>Refresh</button>
-    </div>
-
-    <!-- KPI row -->
-    <div class="row g-3 mb-3">
-        <div class="col-6 col-xl">
-            <div class="card kpi k1">
-                <div class="card-body">
-                    <div class="label">Total Leads</div><div class="value skel" id="kTotal">0000</div>
-                    <div class="sub" id="kTotalSub">&nbsp;</div><i class="fa fa-users ico"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-xl">
-            <div class="card kpi k2">
-                <div class="card-body">
-                    <div class="label">Pipeline Value</div><div class="value skel" id="kValue">0000</div>
-                    <div class="sub" id="kValueSub">&nbsp;</div><i class="fa fa-sack-dollar ico"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-xl">
-            <div class="card kpi k3">
-                <div class="card-body">
-                    <div class="label">New This Month</div><div class="value skel" id="kNew">0000</div>
-                    <div class="sub" id="kNewSub">&nbsp;</div><i class="fa fa-chart-line ico"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-xl">
-            <div class="card kpi k4">
-                <div class="card-body">
-                    <div class="label">Due Today</div><div class="value skel" id="kToday">0000</div>
-                    <div class="sub" id="kTodaySub">&nbsp;</div><i class="fa fa-bell ico"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-xl">
-            <div class="card kpi k5">
-                <div class="card-body">
-                    <div class="label">Overdue Follow-ups</div><div class="value skel" id="kLate">0000</div>
-                    <div class="sub" id="kLateSub">&nbsp;</div><i class="fa fa-triangle-exclamation ico"></i>
-                </div>
-            </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-secondary small">
+                <i class="bi bi-circle-fill text-success me-1" style="font-size:7px"></i>
+                Live Overview &middot; <span id="updated">loading...</span>
+            </span>
+            <button id="btnRefresh" class="btn btn-sm btn-light border">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
         </div>
     </div>
 
-    <!-- Row 2: trend + stage -->
-    <div class="row g-3 mb-3">
+    <!-- KPI Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="subtitle">Total Leads</span>
+                    <div class="kpi-icon blue"><i class="bi bi-people"></i></div>
+                </div>
+                <div class="kpi-value" id="kTotal">0</div>
+                <div class="kpi-footer text-success"><i class="bi bi-graph-up-arrow me-1"></i><span id="kTotalSub">0 new this month</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="subtitle">Pipeline Value</span>
+                    <div class="kpi-icon green"><i class="bi bi-currency-dollar"></i></div>
+                </div>
+                <div class="kpi-value" id="kValue">0</div>
+                <div class="kpi-footer text-success"><i class="bi bi-wallet2 me-1"></i><span id="kAvgSub">Avg 0 per lead</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="subtitle">Due Today</span>
+                    <div class="kpi-icon orange"><i class="bi bi-bell"></i></div>
+                </div>
+                <div class="kpi-value" id="kToday">0</div>
+                <div class="kpi-footer text-warning"><i class="bi bi-clock me-1"></i>Follow-ups scheduled today</div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="subtitle">Overdue Follow-ups</span>
+                    <div class="kpi-icon red"><i class="bi bi-exclamation-triangle"></i></div>
+                </div>
+                <div class="kpi-value" id="kLate">0</div>
+                <div class="kpi-footer text-danger"><i class="bi bi-exclamation-circle me-1"></i>Requires immediate action</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
         <div class="col-lg-8">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-2"><i class="fa fa-chart-area text-primary me-2"></i>Lead Inflow &middot; last 30 days</h6>
-                    <div class="chart-box"><canvas id="chTrend"></canvas></div>
+            <div class="crm-card">
+                <div class="card-heading">Lead Inflow & Performance</div>
+                <div class="card-subtitle">Lead generation trend over the last 30 days</div>
+                <div class="chart-container">
+                    <canvas id="chTrend"></canvas>
                 </div>
             </div>
         </div>
+
         <div class="col-lg-4">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-2"><i class="fa fa-layer-group text-primary me-2"></i>Leads by Stage</h6>
-                    <div class="chart-box"><canvas id="chStage"></canvas></div>
+            <div class="crm-card">
+                <div class="card-heading">Lead Sources</div>
+                <div class="card-subtitle">Distribution of leads by source</div>
+                <div class="chart-container">
+                    <canvas id="chSource"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Row 3: source / service / customer type -->
-    <div class="row g-3 mb-3">
-        <div class="col-lg-4">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-2"><i class="fa fa-bullseye text-primary me-2"></i>Lead Sources</h6>
-                    <div class="chart-box sm"><canvas id="chSource"></canvas></div>
-                </div>
+    <!-- Pipeline + Follow-up Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="crm-card">
+                <div class="card-heading">Sales Pipeline</div>
+                <div class="card-subtitle">Current distribution of leads by stage</div>
+                <div id="pipelineContainer" class="mt-3"></div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-2"><i class="fa fa-concierge-bell text-primary me-2"></i>Services in Demand</h6>
-                    <div class="chart-box sm"><canvas id="chService"></canvas></div>
+
+        <div class="col-lg-6">
+            <div class="crm-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="card-heading">Follow-up Overview</div>
+                        <div class="card-subtitle">Upcoming scheduled follow-ups</div>
+                    </div>
+                    <span class="badge-soft badge-danger" id="overdueBadge">0 Overdue</span>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-2"><i class="fa fa-id-card text-primary me-2"></i>Customer Types</h6>
-                    <div class="chart-box sm"><canvas id="chType"></canvas></div>
-                </div>
+                <div id="followupContainer" class="mt-3"></div>
             </div>
         </div>
     </div>
 
-    <!-- Row 4: leaderboard + follow-ups -->
+    <!-- Additional Breakdowns & Leaderboard -->
     <div class="row g-3">
-        <div class="col-lg-5">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-3"><i class="fa fa-trophy text-warning me-2"></i>Top Performers</h6>
-                    <div id="rank"></div>
-                </div>
+        <div class="col-lg-6">
+            <div class="crm-card">
+                <div class="card-heading">Top Performers</div>
+                <div class="card-subtitle">Leading assignees by lead count & pipeline value</div>
+                <div id="rankContainer" class="mt-3"></div>
             </div>
         </div>
-        <div class="col-lg-7">
-            <div class="card panel">
-                <div class="card-body">
-                    <h6 class="mb-2"><i class="fa fa-calendar-check text-success me-2"></i>Next Follow-ups</h6>
-                    <div id="followups"></div>
+
+        <div class="col-lg-6">
+            <div class="crm-card">
+                <div class="card-heading">Services & Customer Types</div>
+                <div class="card-subtitle">Demand breakdown across services and segments</div>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <div class="subtitle fw-bold mb-2 text-dark">Top Services</div>
+                        <div style="height: 190px; position: relative;"><canvas id="chService"></canvas></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="subtitle fw-bold mb-2 text-dark">Customer Types</div>
+                        <div style="height: 190px; position: relative;"><canvas id="chType"></canvas></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 @section scripts {
