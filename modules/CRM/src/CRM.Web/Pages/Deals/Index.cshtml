@@ -1,0 +1,13 @@
+﻿@page
+@model CRM.Web.Pages.Deals.IndexModel
+@{
+    ViewData["Title"] = "Deals";
+}
+
+@Html.AntiForgeryToken()
+
+<div id="DealsGrid"></div>
+
+@section scripts {
+    <script src="/Pages/Deals/Index.js"></script>
+}

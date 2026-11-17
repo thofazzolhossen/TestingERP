@@ -104,6 +104,13 @@ public class TestingERPMenuContributor : IMenuContributor
         ));
 
         crmMenu.AddItem(new ApplicationMenuItem(
+            "CRM.Deals",
+            "Deals",
+            url: "/Deals",
+            icon: "fa fa-handshake"
+        ));
+
+        crmMenu.AddItem(new ApplicationMenuItem(
             "CRM.Settings",
             "Messenger Settings",
             url: "/Messenger/Settings",

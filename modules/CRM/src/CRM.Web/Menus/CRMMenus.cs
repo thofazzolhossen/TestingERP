@@ -14,4 +14,5 @@ public class CRMMenus
     public const string SheetSettings = GroupName + ".SheetSettings"; // Unique key for Sheets
     public const string Dashboard = GroupName + ".Dashboard"; // Unique key for Dashboard
     public const string FollowUps = GroupName + ".FollowUps"; // Unique key for FollowUps
+    public const string Deals = GroupName + ".Deals";
 }

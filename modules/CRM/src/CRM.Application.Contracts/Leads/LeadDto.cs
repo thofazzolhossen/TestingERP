@@ -31,4 +31,7 @@ public class LeadDto : FullAuditedEntityDto<Guid>
     // Assigned User Details
     public Guid? AssignedUserId { get; set; }
     public string? AssignedUserName { get; set; }
+
+    public bool IsConvertedToDeal { get; set; }
+    public DateTime? ConvertedToDealTime { get; set; }
 }
