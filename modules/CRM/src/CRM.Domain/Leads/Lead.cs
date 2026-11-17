@@ -30,6 +30,10 @@ public class Lead : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public Guid? AssignedUserId { get; set; }
     public string? ExternalId { get; set; }   // sheet row key
 
+    // NEW: Deal Conversion Tracking
+    public bool IsConvertedToDeal { get; set; }
+    public DateTime? ConvertedToDealTime { get; set; }
+
     // Parameterless constructor required by ORM / ABP
     protected Lead()
     {
@@ -51,7 +55,9 @@ public class Lead : FullAuditedAggregateRoot<Guid>, IMultiTenant
         Guid? assignedUserId = null,
         DateTime? expectedCloseDate = null,
         DateTime? nextFollowUpDate = null,
-        string? externalId = null)
+        string? externalId = null,
+        bool isConvertedToDeal = false,
+        DateTime? convertedToDealTime = null)
         : base(id)
     {
         Name = name;
@@ -68,5 +74,7 @@ public class Lead : FullAuditedAggregateRoot<Guid>, IMultiTenant
         ExpectedCloseDate = expectedCloseDate;
         NextFollowUpDate = nextFollowUpDate;
         ExternalId = externalId;
+        IsConvertedToDeal = isConvertedToDeal;
+        ConvertedToDealTime = convertedToDealTime;
     }
 }

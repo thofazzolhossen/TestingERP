@@ -45,31 +45,46 @@
 
         columnDefs: [
             { field: "name", headerName: "Lead Name", flex: 0.5 },
-            { field: "companyName", headerName: "Company", flex: 1.2 },
-            { field: "assignedUserName", headerName: "Assigned", flex: 1.2 },
+            { field: "companyName", headerName: "Company", flex: 1 },
+            // { field: "assignedUserName", headerName: "Assigned", flex: 1 },
             //{ field: "email", headerName: "Email", flex: 1.2 },
-            { field: "phone", headerName: "Phone", flex: 2 },
-            { field: "customerTypeName", headerName: "Customer Type", flex: 1 },
+            { field: "phone", headerName: "Phone", flex: 1 },
+            // { field: "customerTypeName", headerName: "Customer Type", flex: 1 },
             //{ field: "leadSourceName", headerName: "Source", flex: 1 },
-            { field: "leadStageName", headerName: "Stage", flex: 1 },
-            { field: "serviceName", headerName: "Service", flex: 1 },
+            { field: "leadStageName", headerName: "Stage", flex: 0.5 },
+            { field: "serviceName", headerName: "Service" },
             {
                 headerName: "Actions",
-                flex: 2,
                 filter: false,
                 sortable: false,
+                minWidth: 200,
                 cellRenderer: function (params) {
                     if (!params.data) return '';
 
                     const encodedRow = encodeURIComponent(JSON.stringify(params.data));
 
+                    // Render Success Right Icon if already converted, otherwise Convert to Deal button
+                    const dealButtonHtml = params.data.isConvertedToDeal
+                        ? `<span class="btn btn-sm text-success border-0 pe-none"
+                                 title="Converted to Deal">
+                               <i class="fa-solid fa-circle-check fs-6"></i>
+                           </span>`
+                        : `<button type="button"
+                                   class="btn btn-sm btn-outline-success border-0 convert-deal-button"
+                                   data-id="${params.data.id}"
+                                   data-name="${params.data.name || ''}"
+                                   title="Convert to Deal">
+                               <i class="fa-solid fa-handshake"></i>
+                           </button>`;
+
                     return `
-                        <div class="d-flex align-items-center h-100 gap-1">
-                        <a href="/Leads/Details?id=${params.data.id}"
-                           class="btn btn-sm btn-outline-info border-0 view-button"
-                           title="View Lead Details">
-                            <i class="fa fa-eye"></i>
-                        </a>
+                        <div class="d-flex align-items-center h-100">
+                            ${dealButtonHtml}
+                            <a href="/Leads/Details?id=${params.data.id}"
+                               class="btn btn-sm btn-outline-info border-0 view-button"
+                               title="View Lead Details">
+                                <i class="fa fa-eye"></i>
+                            </a>
                             <button type="button" class="btn btn-sm btn-outline-primary border-0 edit-button" 
                                     data-row="${encodedRow}" title="Edit">
                                 <i class="fa fa-edit"></i>
@@ -104,6 +119,55 @@
         $('#LeadModal').modal('show');
     }
 
+    // ---------- CONVERT TO DEAL ----------
+    $(document).on('click', '#LeadsGrid .convert-deal-button', function () {
+        const $btn = $(this);
+        const id = $btn.data('id');
+        const name = $btn.data('name') || 'this lead';
+
+        abp.message.confirm(
+            `Are you sure you want to convert "${name}" to a Deal?`,
+            'Convert to Deal'
+        ).then(function (confirmed) {
+            if (!confirmed) return;
+
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: `?handler=ConvertToDeal&id=${id}`,
+                type: 'POST',
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+                    if (res.success) {
+                        abp.notify.success(res.message || 'Lead converted to Deal!');
+
+                        // O(1) in-place row update so the icon immediately changes to Success Right Icon
+                        const api = window.leadGrid?.gridApi;
+                        const rowNode = api ? api.getRowNode(id) : null;
+                        if (rowNode) {
+                            const updated = Object.assign({}, rowNode.data, {
+                                isConvertedToDeal: true,
+                                convertedToDealTime: new Date().toISOString()
+                            });
+                            rowNode.setData(updated);
+                            api.refreshCells({ rowNodes: [rowNode], force: true });
+                        } else if (window.leadGrid && typeof window.leadGrid.refresh === 'function') {
+                            window.leadGrid.refresh();
+                        }
+                    } else {
+                        abp.notify.error(res.message || 'Failed to convert lead.');
+                        $btn.prop('disabled', false);
+                    }
+                },
+                error: function () {
+                    abp.notify.error('Failed to convert lead to Deal.');
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+    });
 
     // =========================================================
     // EVENT HANDLERS

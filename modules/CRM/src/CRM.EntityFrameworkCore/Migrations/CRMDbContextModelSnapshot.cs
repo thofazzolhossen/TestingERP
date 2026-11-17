@@ -252,6 +252,9 @@ namespace CRM.Migrations
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
+                    b.Property<DateTime?>("ConvertedToDealTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreationTime");
@@ -290,6 +293,11 @@ namespace CRM.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsConvertedToDeal")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -345,7 +353,23 @@ namespace CRM.Migrations
 
                     b.HasIndex("ServiceId");
 
+                    b.HasIndex("TenantId", "AssignedUserId");
+
+                    b.HasIndex("TenantId", "CreationTime");
+
+                    b.HasIndex("TenantId", "CustomerTypeId");
+
                     b.HasIndex("TenantId", "ExternalId");
+
+                    b.HasIndex("TenantId", "IsConvertedToDeal");
+
+                    b.HasIndex("TenantId", "LeadSourceId");
+
+                    b.HasIndex("TenantId", "LeadStageId");
+
+                    b.HasIndex("TenantId", "NextFollowUpDate");
+
+                    b.HasIndex("TenantId", "ServiceId");
 
                     b.ToTable("CrmLeads", (string)null);
                 });

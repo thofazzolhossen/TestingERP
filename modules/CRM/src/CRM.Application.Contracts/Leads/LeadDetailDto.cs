@@ -40,4 +40,7 @@ public class LeadDetailDto : FullAuditedEntityDto<Guid>
     // Resolved Audit User Names
     public string CreatorUserName { get; set; } = "System";
     public string LastModifierUserName { get; set; } = "-";
+
+    public bool IsConvertedToDeal { get; set; }
+    public DateTime? ConvertedToDealTime { get; set; }
 }
