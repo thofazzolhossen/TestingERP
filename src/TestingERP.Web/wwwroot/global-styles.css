@@ -534,3 +534,28 @@
         justify-content: center;
     }
 }
+
+/* Hide the toggle/filter icon when LeptonX applies the collapsed layout state */
+.hover-trigger .lpx-sidebar-container:not(:hover) .menu-collapse-icon,
+.hover-trigger .lpx-sidebar-container:not(:hover) .hidden-in-hover-trigger,
+body[data-layout-state="collapsed"] .menu-collapse-icon,
+.lpx-sidebar-collapsed .menu-collapse-icon {
+    display: none !important;
+}
+
+
+/* Remove rounded corners from topbar container and inner topbar */
+.lpx-topbar-container,
+.lpx-topbar {
+    border-radius: 0 !important;
+}
+
+/* Fix the top-left corner connection gap between sidebar and topbar */
+.lpx-topbar-container {
+    margin-left: -1px !important;
+    border-top-left-radius: 0 !important;
+}
+
+.lpx-sidebar-container {
+    z-index: 102 !important; /* Ensures sidebar sits cleanly over the topbar boundary */
+}

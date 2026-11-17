@@ -59,7 +59,20 @@ public static class CRMDbContextModelCreatingExtensions
             b.HasOne<LeadStage>().WithMany().HasForeignKey(x => x.LeadStageId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<Service>().WithMany().HasForeignKey(x => x.ServiceId).OnDelete(DeleteBehavior.Restrict);
 
+            // ⚡ CRITICAL INDEXES FOR FAST JOINS & SEARCHES ⚡
+            b.HasIndex(x => new { x.TenantId, x.CustomerTypeId });
+            b.HasIndex(x => new { x.TenantId, x.LeadSourceId });
+            b.HasIndex(x => new { x.TenantId, x.LeadStageId });
+            b.HasIndex(x => new { x.TenantId, x.ServiceId });
+            b.HasIndex(x => new { x.TenantId, x.AssignedUserId });
+
+            // ⚡ CRITICAL INDEX FOR DEFAULT LISTING / PAGINATION ⚡
+            b.HasIndex(x => new { x.TenantId, x.CreationTime });
+
             b.HasIndex(x => new { x.TenantId, x.NextFollowUpDate });
+
+            b.Property(x => x.IsConvertedToDeal).HasDefaultValue(false);
+            b.HasIndex(x => new { x.TenantId, x.IsConvertedToDeal });
         });
 
         builder.Entity<LeadStageHistory>(b =>

@@ -41,7 +41,7 @@ public class LeadAppService : CrudAppService<
         IRepository<LeadStage, Guid> leadStageRepository,
         IRepository<Service, Guid> serviceRepository,
         IRepository<IdentityUser, Guid> userRepository,
-        IRepository<LeadStageHistory, Guid> stageHistoryRepository) : base(repository) // Change here
+        IRepository<LeadStageHistory, Guid> stageHistoryRepository) : base(repository)
     {
         _customerTypeRepository = customerTypeRepository;
         _leadSourceRepository = leadSourceRepository;
@@ -53,53 +53,59 @@ public class LeadAppService : CrudAppService<
 
     public override async Task<PagedResultDto<LeadDto>> GetListAsync(PagedAndSortedResultRequestDto input)
     {
-        // 1. Fetch CRM Queryables (from CRMDbContext)
-        var query = await Repository.GetQueryableAsync();
-        var ctQuery = await _customerTypeRepository.GetQueryableAsync();
-        var lsQuery = await _leadSourceRepository.GetQueryableAsync();
-        var stQuery = await _leadStageRepository.GetQueryableAsync();
-        var sQuery = await _serviceRepository.GetQueryableAsync();
+        // 1. AsNoTracking() for Read Performance
+        var query = (await Repository.GetQueryableAsync()).AsNoTracking();
+        var ctQuery = (await _customerTypeRepository.GetQueryableAsync()).AsNoTracking();
+        var lsQuery = (await _leadSourceRepository.GetQueryableAsync()).AsNoTracking();
+        var stQuery = (await _leadStageRepository.GetQueryableAsync()).AsNoTracking();
+        var sQuery = (await _serviceRepository.GetQueryableAsync()).AsNoTracking();
 
         // 2. Join CRM entities in SQL
         var baseQuery = from lead in query
-                        join ct in ctQuery on lead.CustomerTypeId equals ct.Id
-                        join ls in lsQuery on lead.LeadSourceId equals ls.Id
-                        join st in stQuery on lead.LeadStageId equals st.Id
-                        join s in sQuery on lead.ServiceId equals s.Id
+                        join ct in ctQuery on lead.CustomerTypeId equals ct.Id into ctGroup
+                        from ct in ctGroup.DefaultIfEmpty()
+                        join ls in lsQuery on lead.LeadSourceId equals ls.Id into lsGroup
+                        from ls in lsGroup.DefaultIfEmpty()
+                        join st in stQuery on lead.LeadStageId equals st.Id into stGroup
+                        from st in stGroup.DefaultIfEmpty()
+                        join s in sQuery on lead.ServiceId equals s.Id into sGroup
+                        from s in sGroup.DefaultIfEmpty()
                         select new
                         {
                             lead,
-                            CustomerTypeName = ct.Name,
-                            LeadSourceName = ls.Name,
-                            LeadStageName = st.Name,
-                            ServiceName = s.Name
+                            CustomerTypeName = ct != null ? ct.Name : "-",
+                            LeadSourceName = ls != null ? ls.Name : "-",
+                            LeadStageName = st != null ? st.Name : "-",
+                            ServiceName = s != null ? s.Name : "-"
                         };
 
-        // 3. Get total count and paged items from database
+        // 3. Count & Page (Default Orderby added for deterministic paging)
         var totalCount = await baseQuery.CountAsync();
         var items = await baseQuery
+            .OrderByDescending(x => x.lead.CreationTime)
             .Skip(input.SkipCount)
             .Take(input.MaxResultCount)
             .ToListAsync();
 
-        // 4. Fetch assigned User IDs from the current page
+        // 4. Batch Fetch User IDs
         var userIds = items
             .Where(x => x.lead.AssignedUserId.HasValue)
-            .Select(x => x.lead.AssignedUserId.Value)
+            .Select(x => x.lead.AssignedUserId!.Value)
             .Distinct()
             .ToList();
 
-        // 5. Query IdentityUsers separately (from IIdentityDbContext)
+        // 5. Query IdentityUsers separately
         var userDictionary = new Dictionary<Guid, string>();
-        if (userIds.Any())
+        if (userIds.Count > 0)
         {
-            var usersQuery = await _userRepository.GetQueryableAsync();
+            var usersQuery = (await _userRepository.GetQueryableAsync()).AsNoTracking();
             userDictionary = await usersQuery
                 .Where(u => userIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.UserName);
+                .Select(u => new { u.Id, u.UserName })
+                .ToDictionaryAsync(u => u.Id, u => u.UserName ?? "Unassigned");
         }
 
-        // 6. Map and attach AssignedUserName in-memory
+        // 6. Map to DTO
         var dtos = items.Select(x =>
         {
             var dto = ObjectMapper.Map<Lead, LeadDto>(x.lead);
@@ -118,22 +124,15 @@ public class LeadAppService : CrudAppService<
         return new PagedResultDto<LeadDto>(totalCount, dtos);
     }
 
-
-
-    public override async Task<LeadDto> UpdateAsync(
-        Guid id,
-        CreateUpdateLeadDto input)
+    public override async Task<LeadDto> UpdateAsync(Guid id, CreateUpdateLeadDto input)
     {
-        // 1. Get the existing lead before updating.
         var lead = await Repository.GetAsync(id);
 
         var oldStageId = lead.LeadStageId;
         var newStageId = input.LeadStageId;
 
-        // 2. Update the lead using the existing ABP logic.
         var result = await base.UpdateAsync(id, input);
 
-        // 3. Save history only when the stage changes.
         if (oldStageId != newStageId)
         {
             var history = new LeadStageHistory(
@@ -145,18 +144,13 @@ public class LeadAppService : CrudAppService<
                 "Lead stage changed"
             );
 
-            await _stageHistoryRepository.InsertAsync(
-                history,
-                autoSave: true
-            );
+            await _stageHistoryRepository.InsertAsync(history, autoSave: true);
         }
 
         return result;
     }
 
-
-
-    // Import CSV File
+    // Import CSV File (Optimized Database Projection)
     public virtual async Task<int> ImportCsvAsync(string csvContent)
     {
         if (string.IsNullOrWhiteSpace(csvContent)) return 0;
@@ -170,45 +164,47 @@ public class LeadAppService : CrudAppService<
         });
 
         var records = csv.GetRecords<LeadCsvRecordDto>().ToList();
-        if (!records.Any()) return 0;
+        if (records.Count == 0) return 0;
 
-        // Fetch database items as a list first, then group by key to safely prevent duplicate key errors
-        var customerTypesList = await (await _customerTypeRepository.GetQueryableAsync()).ToListAsync();
-        var customerTypes = customerTypesList
+        // Fetch projected minimal key-value data directly from SQL
+        var customerTypes = (await _customerTypeRepository.GetQueryableAsync())
+            .AsNoTracking()
             .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .GroupBy(x => x.Name.Trim().ToLower())
-            .ToDictionary(g => g.Key, g => g.First().Id);
+            .Select(x => new { x.Id, Name = x.Name.Trim().ToLower() })
+            .ToLookup(x => x.Name, x => x.Id)
+            .ToDictionary(g => g.Key, g => g.First());
 
-        var leadSourcesList = await (await _leadSourceRepository.GetQueryableAsync()).ToListAsync();
-        var leadSources = leadSourcesList
+        var leadSources = (await _leadSourceRepository.GetQueryableAsync())
+            .AsNoTracking()
             .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .GroupBy(x => x.Name.Trim().ToLower())
-            .ToDictionary(g => g.Key, g => g.First().Id);
+            .Select(x => new { x.Id, Name = x.Name.Trim().ToLower() })
+            .ToLookup(x => x.Name, x => x.Id)
+            .ToDictionary(g => g.Key, g => g.First());
 
-        var leadStagesList = await (await _leadStageRepository.GetQueryableAsync()).ToListAsync();
-        var leadStages = leadStagesList
+        var leadStages = (await _leadStageRepository.GetQueryableAsync())
+            .AsNoTracking()
             .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .GroupBy(x => x.Name.Trim().ToLower())
-            .ToDictionary(g => g.Key, g => g.First().Id);
+            .Select(x => new { x.Id, Name = x.Name.Trim().ToLower() })
+            .ToLookup(x => x.Name, x => x.Id)
+            .ToDictionary(g => g.Key, g => g.First());
 
-        var servicesList = await (await _serviceRepository.GetQueryableAsync()).ToListAsync();
-        var services = servicesList
+        var services = (await _serviceRepository.GetQueryableAsync())
+            .AsNoTracking()
             .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-            .GroupBy(x => x.Name.Trim().ToLower())
-            .ToDictionary(g => g.Key, g => g.First().Id);
+            .Select(x => new { x.Id, Name = x.Name.Trim().ToLower() })
+            .ToLookup(x => x.Name, x => x.Id)
+            .ToDictionary(g => g.Key, g => g.First());
 
-        var usersList = await (await _userRepository.GetQueryableAsync()).ToListAsync();
-        var users = usersList
+        var users = (await _userRepository.GetQueryableAsync())
+            .AsNoTracking()
             .Where(x => !string.IsNullOrWhiteSpace(x.UserName))
-            .GroupBy(x => x.UserName.Trim().ToLower())
-            .ToDictionary(g => g.Key, g => g.First().Id);
-
-
-
+            .Select(x => new { x.Id, UserName = x.UserName.Trim().ToLower() })
+            .ToLookup(x => x.UserName, x => x.Id)
+            .ToDictionary(g => g.Key, g => g.First());
 
         var leadsToInsert = new List<Lead>();
         var errors = new List<string>();
-        var rowNumber = 1; // header
+        var rowNumber = 1;
 
         foreach (var row in records)
         {
@@ -231,7 +227,7 @@ public class LeadAppService : CrudAppService<
             if ((row.Phone?.Length ?? 0) > 32) rowErrors.Add("Phone > 32 chars");
             if ((row.Remarks?.Length ?? 0) > 1000) rowErrors.Add("Remarks > 1000 chars");
 
-            if (rowErrors.Any())
+            if (rowErrors.Count > 0)
             {
                 errors.Add($"Row {rowNumber}: {string.Join("; ", rowErrors)}");
                 continue;
@@ -251,29 +247,23 @@ public class LeadAppService : CrudAppService<
                 row.Remarks, assignedUserId));
         }
 
-        if (errors.Any())
+        if (errors.Count > 0)
         {
             throw new UserFriendlyException(
                 "CSV import failed. " + string.Join(" | ", errors.Take(10)) +
                 (errors.Count > 10 ? $" ... and {errors.Count - 10} more" : ""));
         }
 
-        if (leadsToInsert.Any())
+        if (leadsToInsert.Count > 0)
         {
-            // autoSave: true runs SaveChanges now, inside the page's try/catch
             await Repository.InsertManyAsync(leadsToInsert, autoSave: true);
         }
 
         return leadsToInsert.Count;
     }
 
-
-
-    // O(1) Single-Query Projection with AsNoTracking()
-
     public async Task<LeadDetailDto> GetDetailAsync(Guid id)
     {
-        // 1. Get CRM data only. Do not join IdentityUser here.
         var leads = (await Repository.GetQueryableAsync()).AsNoTracking();
         var customerTypes = (await _customerTypeRepository.GetQueryableAsync()).AsNoTracking();
         var leadSources = (await _leadSourceRepository.GetQueryableAsync()).AsNoTracking();
@@ -330,13 +320,11 @@ public class LeadAppService : CrudAppService<
                 LastModificationTime = l.LastModificationTime,
                 LastModifierId = l.LastModifierId,
 
-                // Filled from Identity DB after executing the CRM query.
                 AssignedUserName = "Unassigned",
                 CreatorUserName = "System",
                 LastModifierUserName = "-"
             };
 
-        // 2. Execute the CRM query before accessing Identity.
         var result = await query.FirstOrDefaultAsync();
 
         if (result == null)
@@ -344,51 +332,37 @@ public class LeadAppService : CrudAppService<
             throw new EntityNotFoundException(typeof(Lead), id);
         }
 
-        // 3. Collect Identity user IDs.
         var userIds = new[]
         {
-        result.AssignedUserId,
-        result.CreatorId,
-        result.LastModifierId
-    }
+            result.AssignedUserId,
+            result.CreatorId,
+            result.LastModifierId
+        }
         .Where(userId => userId.HasValue)
         .Select(userId => userId!.Value)
         .Distinct()
         .ToList();
 
-        // 4. Query Identity separately (different DbContext).
         if (userIds.Count > 0)
         {
-            var usersQuery = (await _userRepository.GetQueryableAsync())
-                .AsNoTracking();
+            var usersQuery = (await _userRepository.GetQueryableAsync()).AsNoTracking();
 
             var userDictionary = await usersQuery
                 .Where(u => userIds.Contains(u.Id))
-                .Select(u => new
-                {
-                    u.Id,
-                    u.UserName
-                })
+                .Select(u => new { u.Id, u.UserName })
                 .ToDictionaryAsync(u => u.Id, u => u.UserName);
 
-            // 5. Populate the user names in memory.
-            if (result.AssignedUserId.HasValue &&
-                userDictionary.TryGetValue(
-                    result.AssignedUserId.Value, out var assignedUser))
+            if (result.AssignedUserId.HasValue && userDictionary.TryGetValue(result.AssignedUserId.Value, out var assignedUser))
             {
                 result.AssignedUserName = assignedUser ?? "Unassigned";
             }
 
-            if (result.CreatorId.HasValue &&
-                userDictionary.TryGetValue(
-                    result.CreatorId.Value, out var creatorUser))
+            if (result.CreatorId.HasValue && userDictionary.TryGetValue(result.CreatorId.Value, out var creatorUser))
             {
                 result.CreatorUserName = creatorUser ?? "System";
             }
 
-            if (result.LastModifierId.HasValue &&
-                userDictionary.TryGetValue(
-                    result.LastModifierId.Value, out var modifierUser))
+            if (result.LastModifierId.HasValue && userDictionary.TryGetValue(result.LastModifierId.Value, out var modifierUser))
             {
                 result.LastModifierUserName = modifierUser ?? "-";
             }
@@ -397,28 +371,19 @@ public class LeadAppService : CrudAppService<
         return result;
     }
 
-
-    // O(log N + K) Indexed Lookup with AsNoTracking()
-
     public async Task<List<LeadStageHistoryDto>> GetStageHistoryAsync(Guid leadId)
     {
-        // 1. History and stage data: CRM DbContext only
-        var historiesQuery = (await _stageHistoryRepository.GetQueryableAsync())
-            .AsNoTracking();
-
-        var stagesQuery = (await _leadStageRepository.GetQueryableAsync())
-            .AsNoTracking();
+        var historiesQuery = (await _stageHistoryRepository.GetQueryableAsync()).AsNoTracking();
+        var stagesQuery = (await _leadStageRepository.GetQueryableAsync()).AsNoTracking();
 
         var crmItems = await (
             from h in historiesQuery
             where h.LeadId == leadId
 
-            join oldStageItem in stagesQuery
-                on h.OldStageId equals oldStageItem.Id into oldStageGroup
+            join oldStageItem in stagesQuery on h.OldStageId equals oldStageItem.Id into oldStageGroup
             from oldStage in oldStageGroup.DefaultIfEmpty()
 
-            join newStageItem in stagesQuery
-                on h.NewStageId equals newStageItem.Id into newStageGroup
+            join newStageItem in stagesQuery on h.NewStageId equals newStageItem.Id into newStageGroup
             from newStage in newStageGroup.DefaultIfEmpty()
 
             orderby h.CreationTime descending
@@ -428,48 +393,33 @@ public class LeadAppService : CrudAppService<
                 h.Id,
                 h.LeadId,
                 h.OldStageId,
-                OldStageName = oldStage != null
-                    ? oldStage.Name
-                    : "Initial Creation",
+                OldStageName = oldStage != null ? oldStage.Name : "Initial Creation",
                 h.NewStageId,
-                NewStageName = newStage != null
-                    ? newStage.Name
-                    : "Unknown Stage",
+                NewStageName = newStage != null ? newStage.Name : "Unknown Stage",
                 h.CreationTime,
                 h.CreatorId,
                 h.Remarks
             }
         ).ToListAsync();
 
-        // 2. Get Creator IDs
         var creatorIds = crmItems
             .Where(x => x.CreatorId.HasValue)
             .Select(x => x.CreatorId!.Value)
             .Distinct()
             .ToList();
 
-        // 3. Identity DbContext query separately
         var userDictionary = new Dictionary<Guid, string>();
 
         if (creatorIds.Count > 0)
         {
-            var usersQuery = (await _userRepository.GetQueryableAsync())
-                .AsNoTracking();
+            var usersQuery = (await _userRepository.GetQueryableAsync()).AsNoTracking();
 
             userDictionary = await usersQuery
                 .Where(u => creatorIds.Contains(u.Id))
-                .Select(u => new
-                {
-                    u.Id,
-                    u.UserName
-                })
-                .ToDictionaryAsync(
-                    u => u.Id,
-                    u => u.UserName ?? "System"
-                );
+                .Select(u => new { u.Id, u.UserName })
+                .ToDictionaryAsync(u => u.Id, u => u.UserName ?? "System");
         }
 
-        // 4. Build DTOs in memory
         return crmItems.Select(x => new LeadStageHistoryDto
         {
             Id = x.Id,
@@ -480,26 +430,19 @@ public class LeadAppService : CrudAppService<
             NewStageName = x.NewStageName,
             CreationTime = x.CreationTime,
             CreatorId = x.CreatorId,
-            ChangedByUserName =
-                x.CreatorId.HasValue &&
-                userDictionary.TryGetValue(x.CreatorId.Value, out var userName)
-                    ? userName
-                    : "System",
+            ChangedByUserName = x.CreatorId.HasValue && userDictionary.TryGetValue(x.CreatorId.Value, out var userName) ? userName : "System",
             Remarks = x.Remarks
         }).ToList();
     }
 
-
     public async Task<List<LeadDto>> GetFollowUpListAsync(GetFollowUpListInput input)
     {
-        // 1. Fetch CRM Queryables ONLY (all from CRMDbContext)
         var leadQuery = (await Repository.GetQueryableAsync()).AsNoTracking();
         var ctQuery = (await _customerTypeRepository.GetQueryableAsync()).AsNoTracking();
         var lsQuery = (await _leadSourceRepository.GetQueryableAsync()).AsNoTracking();
         var stQuery = (await _leadStageRepository.GetQueryableAsync()).AsNoTracking();
         var sQuery = (await _serviceRepository.GetQueryableAsync()).AsNoTracking();
 
-        // Filter only leads that have a NextFollowUpDate
         leadQuery = leadQuery.Where(x => x.NextFollowUpDate != null);
 
         if (input.FromDate.HasValue)
@@ -510,7 +453,6 @@ public class LeadAppService : CrudAppService<
 
         if (input.ToDate.HasValue)
         {
-            // Inclusive of the entire ToDate day (up to 23:59:59.9999999)
             var toExclusive = input.ToDate.Value.Date.AddDays(1);
             leadQuery = leadQuery.Where(x => x.NextFollowUpDate < toExclusive);
         }
@@ -525,7 +467,6 @@ public class LeadAppService : CrudAppService<
             leadQuery = leadQuery.Where(x => x.AssignedUserId == input.AssignedUserId.Value);
         }
 
-        // 2. Execute the CRM query first (Single DbContext: CRMDbContext)
         var crmItems = await (
             from lead in leadQuery
             join ct in ctQuery on lead.CustomerTypeId equals ct.Id into ctLeft
@@ -557,20 +498,18 @@ public class LeadAppService : CrudAppService<
                 ServiceId = lead.ServiceId,
                 ServiceName = s != null ? s.Name : "-",
                 AssignedUserId = lead.AssignedUserId,
-                AssignedUserName = "Unassigned", // Populated in Step 4
+                AssignedUserName = "Unassigned",
                 CreationTime = lead.CreationTime
             })
             .Take(input.MaxResultCount > 0 ? input.MaxResultCount : 1000)
             .ToListAsync();
 
-        // 3. Collect distinct AssignedUserIds from the CRM results
         var userIds = crmItems
             .Where(x => x.AssignedUserId.HasValue)
             .Select(x => x.AssignedUserId!.Value)
             .Distinct()
             .ToList();
 
-        // 4. Query IdentityUsers separately (Single DbContext: IIdentityDbContext)
         if (userIds.Count > 0)
         {
             var uQuery = (await _userRepository.GetQueryableAsync()).AsNoTracking();
@@ -581,19 +520,15 @@ public class LeadAppService : CrudAppService<
 
             foreach (var item in crmItems)
             {
-                if (item.AssignedUserId.HasValue &&
-                    userDictionary.TryGetValue(item.AssignedUserId.Value, out var userName))
+                if (item.AssignedUserId.HasValue && userDictionary.TryGetValue(item.AssignedUserId.Value, out var userName))
                 {
                     item.AssignedUserName = userName ?? "Unassigned";
                 }
             }
         }
 
-        return crmItems
-        .OrderByDescending(x => x.NextFollowUpDate)
-        .ToList();
+        return crmItems.OrderByDescending(x => x.NextFollowUpDate).ToList();
     }
-
 
     public async Task RescheduleFollowUpAsync(RescheduleFollowUpDto input)
     {
@@ -607,7 +542,6 @@ public class LeadAppService : CrudAppService<
 
         await Repository.UpdateAsync(lead, autoSave: true);
 
-        // If stage changed during follow-up, record it in LeadStageHistory automatically
         if (oldStageId != input.LeadStageId)
         {
             await _stageHistoryRepository.InsertAsync(new LeadStageHistory(
@@ -621,4 +555,64 @@ public class LeadAppService : CrudAppService<
         }
     }
 
+    public async Task<PagedResultDto<LeadDto>> GetDealListAsync(PagedAndSortedResultRequestDto input)
+    {
+        // Reuses your existing joined query, filtered to only converted Deals
+        var allLeads = await GetListAsync(new PagedAndSortedResultRequestDto
+        {
+            SkipCount = 0,
+            MaxResultCount = 1000,
+            Sorting = input.Sorting
+        });
+
+        var deals = allLeads.Items.Where(x => x.IsConvertedToDeal).ToList();
+        return new PagedResultDto<LeadDto>(deals.Count, deals);
+    }
+
+    public async Task ConvertToDealAsync(Guid id)
+    {
+        var lead = await Repository.GetAsync(id);
+        if (lead.IsConvertedToDeal)
+        {
+            return;
+        }
+
+        lead.IsConvertedToDeal = true;
+        lead.ConvertedToDealTime = Clock.Now;
+
+        await Repository.UpdateAsync(lead, autoSave: true);
+
+        // Optional: Record transition in LeadStageHistory if you have _stageHistoryRepository injected
+        await _stageHistoryRepository.InsertAsync(new LeadStageHistory(
+            GuidGenerator.Create(),
+            lead.Id,
+            oldStageId: lead.LeadStageId,
+            newStageId: lead.LeadStageId,
+            tenantId: CurrentTenant.Id,
+            remarks: "Lead converted to Deal"
+        ), autoSave: true);
+    }
+
+    public async Task RevertToLeadAsync(Guid id)
+    {
+        var lead = await Repository.GetAsync(id);
+        if (!lead.IsConvertedToDeal)
+        {
+            return;
+        }
+
+        lead.IsConvertedToDeal = false;
+        lead.ConvertedToDealTime = null;
+
+        await Repository.UpdateAsync(lead, autoSave: true);
+
+        await _stageHistoryRepository.InsertAsync(new LeadStageHistory(
+            GuidGenerator.Create(),
+            lead.Id,
+            oldStageId: lead.LeadStageId,
+            newStageId: lead.LeadStageId,
+            tenantId: CurrentTenant.Id,
+            remarks: "Deal reverted back to Lead"
+        ), autoSave: true);
+    }
 }

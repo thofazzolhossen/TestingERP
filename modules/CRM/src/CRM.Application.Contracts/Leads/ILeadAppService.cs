@@ -19,4 +19,8 @@ public interface ILeadAppService :
     Task<List<LeadStageHistoryDto>> GetStageHistoryAsync(Guid leadId);
     Task<List<LeadDto>> GetFollowUpListAsync(GetFollowUpListInput input);
     Task RescheduleFollowUpAsync(RescheduleFollowUpDto input);
+
+    Task<PagedResultDto<LeadDto>> GetDealListAsync(PagedAndSortedResultRequestDto input);
+    Task ConvertToDealAsync(Guid id);
+    Task RevertToLeadAsync(Guid id);
 }

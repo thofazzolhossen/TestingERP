@@ -138,4 +138,14 @@ public class IndexModel : AbpPageModel
             return new JsonResult(new { success = false, message });
         }
     }
+
+    public async Task<IActionResult> OnPostConvertToDealAsync(Guid id)
+    {
+        await _leadAppService.ConvertToDealAsync(id);
+        return new JsonResult(new
+        {
+            success = true,
+            message = "Lead converted to Deal successfully!"
+        });
+    }
 }
